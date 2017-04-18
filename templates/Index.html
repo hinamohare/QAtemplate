@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html>
+<title>Quality Assurance Platform</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="../static/styles/demo_style.css" rel="stylesheet" type="text/css"/>
+<!-- https://github.com/mstratman/jQuery-Smart-Wizard/blob/master/README.md -->
+<link href="../static/styles/smart_wizard.css" rel="stylesheet" type="text/css"/>
+<link href="../static/styles/general.css" rel="stylesheet" type="text/css"/>
+<!--link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"/-->
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"/>
+<link rel="stylesheet" href="../static/kendo/styles/kendo.common.min.css"/>
+<link rel="stylesheet" href="../static/kendo/styles/kendo.default.min.css"/>
+<link rel="stylesheet" href="../static/kendo/styles/kendo.default.mobile.min.css"/>
+
+<!--script type="text/javascript" src="../static/js/jquery-2.0.0.min.js"></script-->
+<script src="../static/kendo/js/jquery.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script type='text/javascript' src='../static/js/knockout-3.4.2.js'></script>
+
+<script type="text/javascript" src="../static/js/model.js"></script>
+<script type="text/javascript" src="../static/js/jquery.smartWizard.js"></script>
+
+
+<script src="../static/kendo/js/kendo.core.min.js"></script>
+<script src="../static/kendo/js/kendo.data.min.js"></script>
+<script src="../static/kendo/js/kendo.all.min.js"></script>
+<script src="../static/js/common.js"></script>
+<script src="../static/js/qap.js"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+<script type="text/javascript">
+    // google.charts.load("current", {packages:["corechart","gauge","table"]});
+    // google.charts.setOnLoadCallback(drawGuageChart);
+
+
+    function initMap() {
+        var homeMap = new google.maps.Map(document.getElementById('homeRegionMap'), {
+            zoom: 4,
+            center: {lat: 37.548839, lng: -122.2597169},
+            zoomControl: true,
+            scaleControl: true
+        });
+        var reportMap = new google.maps.Map(document.getElementById('regionMap'), {
+            zoom: 4,
+            center: {lat: 37.548839, lng: -122.2597169},
+            zoomControl: true,
+            scaleControl: true
+        });
+        var neighborhoods = [
+            new google.maps.LatLng(52.511467, 13.447179),
+            new google.maps.LatLng(51.549061, 13.422975),
+            new google.maps.LatLng(51.697622, 13.396110),
+            new google.maps.LatLng(52.576683, 13.344393)
+        ];
+        var markers = [];
+
+        drop(homeMap, neighborhoods, markers);
+
+    }
+
+    // Adds a marker to the map.
+    function drop(map, neighborhoods, markers) {
+        for (var i = 0; i < neighborhoods.length; i++) {
+            markers.push(new google.maps.Marker({position: neighborhoods[i], map: map}));
+        }
+    }
+
+    // Get the Sidebar
+    var mySidebar = document.getElementById("mySidebar");
+
+    // Get the DIV with overlay effect
+    var overlayBg = document.getElementById("myOverlay");
+
+    // Toggle between showing and hiding the sidebar, and add overlay effect
+    function w3_open() {
+        if (mySidebar.style.display === 'block') {
+            mySidebar.style.display = 'none';
+            overlayBg.style.display = "none";
+        } else {
+            mySidebar.style.display = 'block';
+            overlayBg.style.display = "block";
+        }
+    }
+
+    // Close the sidebar with the close button
+    function w3_close() {
+        mySidebar.style.display = "none";
+        overlayBg.style.display = "none";
+    }
+    function showcontent(navitem) {
+        if (navitem === 1) {
+            $('#homepanel').show();
+            $('#searchpanel').hide();
+            $('#datainputpanel').hide();
+            $('#analysispanel').hide();
+            viewModel.SectionName('Dashboard');
+        }
+        else if (navitem === 2) {
+            $('#searchpanel').show();
+            $('#homepanel').hide();
+            $('#datainputpanel').hide();
+            $('#analysispanel').hide();
+            viewModel.SectionName('Search');
+        }
+        else if (navitem === 3) {
+            $('#datainputpanel').show();
+            $('#searchpanel').hide();
+            $('#homepanel').hide();
+            $('#analysispanel').hide();
+            viewModel.SectionName('Data Input');
+        }
+        else if (navitem === 4) {
+            $('#searchpanel').hide();
+            $('#homepanel').hide();
+            $('#datainputpanel').hide();
+            $('#analysispanel').show();
+            viewModel.SectionName('Analysis & Report');
+        }
+        else {
+            $('#homepanel').show();
+        }
+
+
+    }
+ function showValidationType(type) {
+            if(type === "ToolBased")
+            {
+                $('#secModelBasedType').hide();
+            }
+            else
+            {
+                $('#secModelBasedType').show();
+            }
+        }
+
+
+
+
+
+
+</script>
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDOKQ7m8UJHH0nVxIrd6yNFa44oa-iK6tM&callback=initMap"></script>
+<script>
+    $(document).ready(function () {
+
+
+        //$('#modal').modal();
+        // Smart Wizard
+        $('#wizard').smartWizard({onFinish: onFinishCallback});
+
+        function onFinishCallback(objs, context) {
+            if (validateAllSteps()) {
+
+                var data =viewModel.DataInputModel;
+                data.Source = viewModel.DiSourceValue();
+                //data.CsvFileName= "98723420348.csv",
+                //name of file input taken from the server side
+                data.CsvFileName=$('#hdnFileName').val()
+                data.Region = $("#dropdowndatainputregion").val();
+                data.Station = $("#dropdownstation").val();
+                data.FromDate = $("#datepickerdatainputfrom").val();
+                data.ToDate = $("#datepickerdatainputto").val();
+                data.IsRequiredClean =viewModel.IsRequiredClean();
+                data.Parameters.Completeness = viewModel.Completeness();
+                data.Parameters.Accuracy = viewModel.Accuracy();
+                data.Parameters.Timeliness = viewModel.Timeliness();
+                data.Parameters.Uniqueness = viewModel.Uniqueness();
+                data.Parameters.Validity = viewModel.Validity();
+                data.Parameters.Consistency = viewModel.Consistency();
+                data.Parameters.Reliability = viewModel.Reliability();
+                data.Parameters.Usability = viewModel.Usability();
+                data.ValidationType = viewModel.ValidationType();
+                data.ModelBasedSubType =viewModel.ModelBasedSubType();
+                data.Model = viewModel.Model();
+                qap.submitdatainput(data);
+                showcontent(4);
+                //showMessage();
+            }
+        }
+
+        // Your Step validation logic
+        function validateSteps(stepnumber) {
+            var isStepValid = true;
+            // validate step 1
+            if (stepnumber == 1) {
+                // Your step validation logic
+                // set isStepValid = false if has errors
+            }
+            // ...
+        }
+
+        function validateAllSteps() {
+            var isStepValid = true;
+            // all step validation logic
+            return isStepValid;
+        }
+
+        function showMessage() {
+            alert('Hello');
+        }
+
+        $("#collectionaccordion").accordion();
+
+
+        // create a template using the above definition
+        var validatedData = qap.getResult();
+
+        var dataSource = new kendo.data.DataSource({
+            data: validatedData,
+            change: function () { // subscribe to the CHANGE event of the data source
+                //$("#validatedResultSet tbody").html(kendo.render(template, this.view())); // populate the table
+            }
+        });
+
+        // read data from the "movies" array
+        dataSource.read();
+
+        var bindResultGrid = function (resultData) {
+            var tempDataSource =new kendo.data.DataSource({ data: resultData });
+
+            $("#grid").kendoGrid({
+                dataSource: tempDataSource,
+                selectable: "row",
+                change: function (e) {
+                    var selectedRows = this.select();
+                    showdashboard(this.dataItem(selectedRows[0]));
+
+                },
+                // navigatable: true,
+                // navigate: function(e) {
+                //   console.log(e.element); // displays the newly highlighted cell
+                //  },
+                //height: 450,
+                groupable: false,
+                sortable: true,
+                pageable: {
+                    refresh: true,
+                    pageSizes: true,
+                    buttonCount: 5
+                },
+                columns: [{
+                    field: "Region",
+                    title: "Region",
+                    width: 200
+                }, {
+                    field: "Station",
+                    title: "Station",
+                    width: 200
+                }, {
+                    field: "From",
+                    title: "From"
+                }, {
+                    field: "To",
+                    title: "To"
+                }, {
+                    field: "IsCleaned",
+                    title: "Is Cleaned",
+                    width: 100
+                }, {
+                    field: "OverallQuality",
+                    width: 120
+                },
+                {
+                    command: [{
+                        name: "Analysis",
+                        width: 100,
+                        click: function(e) {
+                            // prevent page scroll position change
+                            e.preventDefault();
+                            // e.target is the DOM element representing the button
+                            var tr = $(e.target).closest("tr"); // get the current table row (tr)
+                            // get the data bound to the current table row
+                            var data = this.dataItem(tr);
+                             var selectedRows = this.select();
+                            showdashboard(data);
+                            console.log("Details for: " + data.Region);
+                        }
+                      }]
+                }
+                ]
+            });
+        };
+
+        /*Get Region Start*/
+        var getregion = function(){
+            var regions;
+            $.ajax({
+                type: "GET",
+                url: "/getallregioninfo",
+                dataType:"json",
+                contentType:"application/json",
+                success: function (result) {
+                        regions = result.regions;
+                        binddatainputregion(regions); //Data input page
+                        bindregion(regions); //Search Page
+                },
+                error: function(){
+                    console.log("Error occured while fetching region information")
+                }
+            });
+        };
+        /*Get Region End*/
+
+        var bindregion = function (regions) {
+              $("#dropdownregion").kendoDropDownList({
+                    dataTextField: "RegionName",
+                    dataValueField: "RegionName",
+                    dataSource: regions,
+                    index: 0,
+                    change: function(){
+                        bindstation(this.dataItem().Stations);
+                    },
+                    dataBound:function(e){
+                        bindstation(this.dataItems()[0].Stations);
+                    }
+                });
+            };
+
+
+        var binddatainputregion = function (regions) {
+
+
+            $("#dropdowndatainputregion").kendoDropDownList({
+                dataTextField: "RegionName",
+                dataValueField: "RegionName",
+                dataSource: regions,
+                index: 0,
+                change: function(){
+                        binddatainputstation(this.dataItem().Stations);
+                    },
+                dataBound:function(e){
+                        binddatainputstation(this.dataItems()[0].Stations);
+                    }
+            });
+        };
+        var bindstation = function (stations) {
+            var regionId = 1;
+            //var stations = qap.getStationsByRegionId(regionId);
+            $("#dropdownstation").kendoDropDownList({
+                dataTextField: "StationName",
+                dataValueField: "StationName",
+                dataSource: stations,
+                index: 0
+
+            });
+
+        };
+        var binddatainputstation = function (stations) {
+            var regionId = 1;
+            //var stations = qap.getStationsByRegionId(regionId);
+            $("#dropdowndatainputstation").kendoDropDownList({
+                dataTextField: "StationName",
+                dataValueField: "StationName",
+                dataSource: stations,
+                index: 0
+
+            });
+        };
+        var drawGuageChart = function (model) {
+            var guagedata = google.visualization.arrayToDataTable([
+                ['Label', 'Value'],
+                ['Completeness', model.Completeness],
+                ['Accuracy', model.Accuracy],
+                ['Timeliness', model.Timeliness],
+                ['Uniqueness', model.Uniqueness],
+                ['Validity', model.Validity],
+                ['Consistency', model.Consistency],
+                ['Reliability', model.Reliability],
+                ['Usability', model.Usability]
+            ]);
+
+            var options = {
+                greenFrom: 85, greenTo: 100,
+                yellowFrom: 25, yellowTo: 85,
+                redFrom: 0, redTo: 25,
+                minorTicks: 5
+            };
+
+            var chart = new google.visualization.Gauge(document.getElementById('guagechart'));
+
+            chart.draw(guagedata, options);
+
+        };
+        var drawBarGraph = function (model) {
+            var data = google.visualization.arrayToDataTable([
+                ['Element', 'Density', {role: "style"}],
+                ['Completeness', model.Completeness, "silver"],
+                ['Accuracy', model.Accuracy, "purple"],
+                ['Timeliness', model.Timeliness, "skyblue"],
+                ['Uniqueness', model.Uniqueness, "black"],
+                ['Validity', model.Validity, "brown"],
+                ['Consistency', model.Consistency, "yellow"],
+                ['Reliability', model.Reliability, "green"],
+                ['Usability', model.Usability, "blue"]
+            ]);
+
+            var view = new google.visualization.DataView(data);
+            view.setColumns([0, 1,
+                {
+                    calc: "stringify",
+                    sourceColumn: 1,
+                    type: "string",
+                    role: "annotation"
+                },
+                2]);
+
+            var options = {
+                title: "Quality Rating in Percentage",
+
+                bar: {groupWidth: "95%"},
+                legend: {position: "none"},
+            };
+            var chart = new google.visualization.BarChart(document.getElementById("barchart"));
+            chart.draw(view, options);
+
+        };
+        var showdashboard = function (item) {
+
+            var parameter = item.Parameters;
+            console.log(parameter);
+
+            var DashBoard = new Object();
+
+            DashBoard.Completeness = parameter.Completeness;
+            DashBoard.Accuracy = parameter.Accuracy;
+            DashBoard.Timeliness = parameter.Timeliness;
+            DashBoard.Uniqueness = parameter.Uniqueness;
+            DashBoard.Validity = parameter.Validity;
+            DashBoard.Consistency = parameter.Consistency;
+            DashBoard.Reliability = parameter.Reliability;
+            DashBoard.Usability = parameter.Usability;
+            google.charts.load("current", {packages: ["corechart", "gauge", "table"]});
+            google.charts.setOnLoadCallback(drawGuageChart(DashBoard));
+            google.charts.setOnLoadCallback(drawBarGraph(DashBoard));
+            showcontent(4);
+        };
+
+
+
+
+
+        getregion();
+        $("#fromdatepicker").kendoDatePicker();
+        $("#todatepicker").kendoDatePicker();
+        $("#datepickerdatainputfrom").kendoDatePicker();
+        $("#datepickerdatainputto").kendoDatePicker();
+
+
+        //Knocout Bindings
+
+        ko.applyBindings(viewModel);
+        $("#btnSearch").on("click", function () {
+            var tempregion = $("#dropdownregion").val();
+            var tempstation = $("#dropdownstation").val();
+            viewModel.SearchModel.Region=tempregion;
+            viewModel.SearchModel.Station=tempstation;
+            viewModel.SearchModel.FromDate=$('#fromdatepicker').val();
+            viewModel.SearchModel.ToDate=$('#todatepicker').val();
+            var selfQap = qap;
+           // var resultdata = selfQap.search(viewModel.SearchModel);
+           $.ajax({
+                    type:"GET",
+                    url:"/search",
+                    dataType:"json",
+                    //contentType:"application/json",
+                    data:viewModel.SearchModel,
+                     beforeSend: function(){
+                         // Handle the beforeSend event
+                         selfQap.showmodal();
+                       },
+                    success:function(response){
+                        if(response.data.found ==='no')
+                        {
+                            console.log('No Record found');
+                            return;
+                        }
+
+                    },
+                    error:function(response){console.log('There is error while fetching search data')},
+                    complete:function(response){
+                     selfQap.resultModel = response.responseJSON.data.records;
+                     bindResultGrid(selfQap.resultModel);
+                    selfQap.hidemodal();
+
+                    }
+                });
+
+           // qap.hidemodal();
+        });
+
+         $('#btncsvfile').change(function () {
+        sendFile(this.files[0]);
+        //$('#frmcsvfile').submit(function (e) {
+            // e.preventDefault();
+       // });
+    });
+
+    function sendFile(file) {
+        var fd = new FormData(document.getElementById("frmcsvfile"));
+        $.ajax({
+            type: 'post',
+            url: '/upload',
+            data: fd,
+            success: function (data) {
+                // do something
+                var fname = data.result.filename;
+                console.log(fname);
+                $('#hdnFileName').val(fname);
+            },
+             error: function (data) {
+                // do something
+
+                $('#hdnFileName').val('error');
+            },
+            xhrFields: {
+                // add listener to XMLHTTPRequest object directly for progress (jquery doesn't have this yet)
+                onprogress: function (progress) {
+                    // calculate upload progress
+                    var percentage = Math.floor((progress.total / progress.totalSize) * 100);
+                    // log upload progress to console
+                    console.log('progress', percentage);
+                    if (percentage === 100) {
+                        console.log('DONE!');
+                    }
+                }
+            },
+            processData: false,
+            contentType: false
+        });
+        return false;
+    }
+
+
+    showcontent(2); //show default data input. For debug
+    });
+
+
+
+
+
+</script>
+
+
+<body class="w3-light-orange">
+
+<!-- Top container -->
+<div class="w3-bar w3-top w3-blue-grey w3-large " style="z-index:4">
+
+    <div class="w3-left">
+        <img src="static/images/qaplogo.png" class="w3-circle " style="width:50px">
+    </div>
+    <span class="w3-bar-item w3-left">Quality Assurance Platform</span>
+</div>
+
+<!-- Sidebar/menu -->
+<nav class="w3-sidebar w3-collapse w3-orange w3-text-white w3-animate-left" style="z-index:3;width:300px;"
+     id="mySidebar"><br>
+    <div class="w3-container w3-row">
+
+        <div class="w3-col s8 w3-bar">
+            <span>Welcome, <strong>Hina</strong></span><br>
+            <a href="#" class="w3-bar-item w3-button"><i class="fa fa-envelope"></i></a>
+            <a href="#" class="w3-bar-item w3-button"><i class="fa fa-user"></i></a>
+            <a href="#" class="w3-bar-item w3-button"><i class="fa fa-cog"></i></a>
+        </div>
+    </div>
+    <hr>
+    <div class="w3-container">
+        <h5>Menu</h5>
+    </div>
+    <div class="w3-bar-block">
+        <a href="#" class="w3-bar-item w3-button w3-padding-16 w3-hide-large w3-dark-grey w3-hover-black"
+           onclick="w3_close()" title="close menu"><i class="fa fa-remove fa-fw"></i>� Close Menu</a>
+
+        <a href="#" onclick="showcontent(1);" class="w3-bar-item w3-button w3-padding"><i class="fa fa-home fa-fw"></i>
+            Home</a>
+        <a href="#" onclick="showcontent(2);" class="w3-bar-item w3-button w3-padding"><i
+                class="fa fa-search fa-fw"></i> Search</a>
+        <a href="#" onclick="showcontent(3);" class="w3-bar-item w3-button w3-padding"><i
+                class="fa fa-database fa-fw"></i> Data Input</a>
+        <a href="#" onclick="showcontent(4);" class="w3-bar-item w3-button w3-padding"><i
+                class="fa fa-bar-chart fa-fw"></i> Analysis</a>
+
+        <!--<a href="#" class="w3-bar-item w3-button w3-padding"><i class="fa fa-cog fa-fw"></i> Settings</a>
+        -->
+        <br><br>
+    </div>
+</nav>
+
+
+<!-- Overlay effect when opening sidebar on small screens -->
+<div class="w3-overlay w3-hide-large w3-animate-opacity" onclick="w3_close()" style="cursor:pointer"
+     title="close side menu" id="myOverlay"></div>
+
+<!-- !PAGE CONTENT! -->
+<div id="main" class="w3-main" style="margin-left:300px;margin-top:43px;">
+
+    <!-- Header-->
+    <header class="w3-container w3-grey" style="padding-top:55px">
+        <h5><b><i class="fa fa-dashboard"></i> <span data-bind="text: SectionName"></span></b></h5>
+    </header>
+
+
+    <div id="homepanel">
+        <div class="w3-panel">
+            <div class="w3-row-padding" style="margin:0 -16px">
+                <div class="w3-twothird">
+                    <h5>Regions</h5>
+                    <div id="homeRegionMap" style="width:100%;height:400px;box-sizing: border-box"></div>
+                </div>
+
+            </div>
+        </div>
+        <div class="w3-panel">
+            <div class="w3-row-padding" style="margin:0 -16px">
+
+                <div class="w3-twothird">
+                    <h5>Feeds</h5>
+                    <table class="w3-table w3-striped w3-white">
+                        <tr>
+                            <td><i class="fa fa-feed w3-text-blue w3-large"></i></td>
+                            <td>National Oceanic and Atmospheric Administration</td>
+                            <td><i><a href="http://www.noaa.gov/" target="_blank"> visit</a></i></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fa fa-feed w3-text-red w3-large"></i></td>
+                            <td>U.S. Geological Survey</td>
+                            <td><i><a href="https://www.usgs.gov/" target="_blank"> visit</a></i></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fa fa-feed w3-text-blue w3-large"></i></td>
+                            <td>Center for Operational Oceanographic Products and Services</td>
+                            <td><i><a href="http://oceanservice.noaa.gov/outreach/pdfs/about_coops.pdf" target="_blank">
+                                visit</a></i></td>
+                        </tr>
+                        <tr>
+                            <td><i class="fa fa-feed w3-text-red w3-large"></i></td>
+                            <td>National Data Buoy Center</td>
+                            <td><i><a href="http://www.ndbc.noaa.gov/" target="_blank"> visit</a></i></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <hr>
+
+        <!-- Footer
+        <footer class="w3-container w3-padding-16 w3-light-grey">
+          <h4>Quality Assurance Platform</h4>
+          <p>Developed by <a href="https://sjsu.edu" target="_blank">SJSU</a></p>
+        </footer>-->
+
+        <!-- End page content -->
+    </div><!--Home Panel End-->
+    <div id="searchpanel" style="width:100%; display:none;">
+
+        <div id="searchtemplate">
+            <div class="w3-panel">
+                <div class="w3-row-padding" style="margin:0 -16px">
+                    <div class="w3-twothird">
+                        <h5>Criteria</h5>
+                        <table class="w3-table ">
+                            <tr>
+                                <td>
+                                    Region
+                                </td>
+                                <td>
+                                    <select id="dropdownregion" style="width: 200px;"></select>
+                                </td>
+                                <td>
+                                    Station
+                                </td>
+                                <td>
+                                    <select id="dropdownstation" style="width: 200px;"> </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>From</td>
+                                <td><input id="fromdatepicker" style="width: 200px"/></td>
+                                <td>To</td>
+                                <td><input id="todatepicker" style="width: 200px"/></td>
+                            </tr>
+                            <tr>
+                                <td colspan="4"><input id="btnSearch" value="Search" type="button"></td>
+                            </tr>
+                        </table>
+
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="w3-panel">
+            <div class="w3-row-padding" style="margin:0 -16px">
+                <div class="w3-one">
+                    <h5>Result</h5>
+                    <div id="grid"></div>
+
+                </div>
+            </div>
+        </div>
+
+
+    </div><!--Search Panel End-->
+    <div id="datainputpanel" style="display: none;">
+
+        <div class="w3-panel">
+            <div class="w3-row-padding" style="margin:0 -16px">
+                <div class="w3-twothird">
+                    <h5>Input Wizard</h5>
+
+                    <!-- Smart Wizard -->
+                    <div id="wizard" class="swMain">
+
+                        <div>
+                            <h3 class="StepTitle">Data Source</h3>
+                            <div>
+                                <section class="collectioncontainer">
+                                    <div class="collectionleftpanel">
+                                        <fieldset>
+                                            <legend>Select Source</legend>
+                                            <input type="radio" data-bind="checked: DiSourceValue" value="CSV"
+                                                   name="source"> CSV
+                                            <input type="radio" data-bind="checked: DiSourceValue" value="WebService"
+                                                   name="source"> Web Service
+
+                                        </fieldset>
+                                        <div data-bind="visible: ShowCsvSource">
+                                            <form id="frmcsvfile" method="post" enctype="multipart/form-data"
+                                                  action="{{ url_for('upload') }}">
+                                                <fieldset>
+                                                    <legend>Upload your CSV File</legend>
+                                                    <input type="file" name="csvfile" id="btncsvfile" accept=".csv"/>
+                                                    <input type="hidden" data-bind="value: CsvFileName"
+                                                           id="hdnFileName"/>
+                                                </fieldset>
+                                            </form>
+                                        </div>
+                                        -- Or --
+                                        <div data-bind="visible: ShowWsSource">Get Data From Database/Web Service
+
+                                        </div>
+                                        <i>Note:Based on below criteria, processor will search data into database. If
+                                            data is not
+                                            aviailable, then data will get retrieve via web service.</i>
+
+                                        <table class="w3-table w3-striped w3-white">
+                                            <tr>
+                                                <td>Region</td>
+                                                <td>
+                                                    <select id="dropdowndatainputregion" name="region">
+                                                    </select></td>
+                                                <td>Station</td>
+                                                <td><select id="dropdowndatainputstation" name="station"></select></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Start Date</td>
+                                                <td><input id="datepickerdatainputfrom" type="text"></input></td>
+                                                <td>End Date</td>
+                                                <td><input id="datepickerdatainputto" type="text"></input></td>
+                                            </tr>
+                                        </table>
+
+
+                                    </div>
+
+                                </section>
+                            </div>
+
+
+                        </div>
+                        <div>
+                            <h2 class="StepTitle">Cleaning</h2>
+                            <p>Do you want to perform data cleaning operation?
+                            </p>
+                            <p>
+                                <input type="radio" class="w3-radio" value="true" data-bind="checked: IsRequiredClean"
+                                       id="radperformcleaningYes"
+                                       name="radperformcleaning"> Yes
+                                <input type="radio" class="w3-radio" value="false" data-bind="checked: IsRequiredClean"
+                                       id="radperformcleaningNo"
+                                       name="radperformcleaning"> No
+                            </p>
+                            <p>
+                                Some description will come here...
+                            </p>
+                        </div>
+                        <div>
+                            <h2 class="StepTitle">Apply Filter</h2>
+                            <p>
+                                <input type="checkbox" data-bind="checked: Completeness" class="w3-check"> Completeness
+                                <input type="checkbox" data-bind="checked: Accuracy" class="w3-check"> Accuracy
+                                <input type="checkbox" data-bind="checked: Timeliness" class="w3-check"> Timeliness
+                                <input type="checkbox" data-bind="checked: Uniqueness" class="w3-check"> Uniqueness
+                                <input type="checkbox" data-bind="checked: Validity" class="w3-check"> Validity
+                                <input type="checkbox" data-bind="checked: Consistency" class="w3-check"> Consistency
+                                <input type="checkbox" data-bind="checked: Reliability" class="w3-check"> Reliability
+                                <input type="checkbox" data-bind="checked: Usability" class="w3-check"> Usability
+                            </p>
+                            <p>
+                                Some description will come here...
+
+                            </p>
+                            <p>Model Selection</p>
+                            <input type="radio" data-bind="checked:Model" value="Model1" name="modeltype"> Model 1
+                            <input type="radio" data-bind="checked:Model" value="Model2" name="modeltype"> Model 2
+
+                            <p>
+                                Some description will come here...
+
+                            </p>
+                        </div>
+                        <div>
+                            <h2 class="StepTitle">Validation</h2>
+
+
+                            <input type="radio" value="ToolBased" data-bind="checked:ValidationType"
+                                   onclick="showValidationType('ToolBased')" name="validationtype"> Tool Based
+                            <input type="radio" value="ModelBased" data-bind="checked:ValidationType"
+                                   onclick="showValidationType('ModelBased')" name="validationtype"> Model Based
+                            <fieldset id="secModelBasedType">
+                                <legend>Select Sub Type</legend>
+                                <input type="radio" value="RegionBased" data-bind="checked:ModelBasedSubType"
+                                       name="Region Based"> Region Based
+                                <input type="radio" value="StationBased" data-bind="checked:ModelBasedSubType"
+                                       name="Station Based"> Station Based
+                            </fieldset>
+
+
+                        </div>
+                    </div>
+                    <!-- End SmartWizard Content -->
+                </div>
+
+            </div>
+        </div>
+    </div><!--Data i/p Panel End-->
+    <div id="analysispanel" style="display: none;"> <!--Analysis Panel Start-->
+        <div class="w3-panel">
+            <div class="w3-row-padding" style="margin:0 -16px">
+                <div class="w3-container  w3-padding-32">
+                    <h5>Analysis and Report</h5>
+
+                    <div class=" w3-row">
+
+                        <div class="w3-container w3-third">
+                            <div id="barchart" style="width: 50%; height: 300px;"></div>
+                        </div>
+                        <div class="w3-container w3-third">
+                            <div id="regionMap" style="height: 300px;width: 300px"></div>
+                        </div>
+
+
+                    </div>
+
+                    <div class=" w3-row">
+                        <div class="w3-container w3-third">
+                            <div id="guagechart"></div>
+                        </div>
+
+                    </div>
+                </div>
+            </div> <!--Analysis Panel End-->
+
+        </div><!-- !PAGE CONTENT END! -->
+    </div>
+</div>
+<div id="mainmodal" class="w3-modal">
+    <div class="w3-modal-content">
+        <div class="w3-container">
+      <span onclick="document.getElementById('mainmodal').style.display='none'"
+            class="w3-button w3-display-topright">&times;</span>
+
+            <p><img src="static/images/loader.gif" class="w3-circle ">Searching..</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!Docktype html>
+<html>
+<head>
+     <meta Content-Type="text/html"; charset="UTF-8"/>
+<script>
+     function submitForm()
+     {
+         var x = document.getElementById("myForm");
+         var requestBody = {};
+           requestBody['region'] = x.elements["region"].value;
+           requestBody['station'] = x.elements["station"].value;
+           requestBody['from'] = x.elements["start_date"].value;
+           requestBody['to'] = x.elements["end_date"].value;
+           requestBody['clean'] = x.elements["clean"].value;
+
+           requestBody['fileupload'] = x.elements["fileupload"].value;
+           if(requestBody['fileupload']=="yes")
+           {
+             requestBody['file'] = x.elements["file"].value;
+           }
+           else
+           {
+             requestBody['getdatafromweb'] = x.elements["getdatafromweb"].value;
+           }
+           requestBody['parameters'] =
+             { 'completeness': x.elements["completeness"].value,
+               'accuracy': x.elements["accuracy"].value,
+               'timeliness': x.elements["timeliness"].value,
+               'uniqueness': x.elements["uniqueness"].value,
+               'validity': x.elements["validity"].value,
+               'consistency': x.elements["consistency"].value,
+               'reliability': x.elements["reliability"].value,
+               'availability': x.elements["availability"].value,
+               'usability': x.elements["usability"].value,
+             };
+          JSON.stringify(x);
+         console.log(x);
+         x.submit();
+     }
+</script>
+
+</head>
+<body>
+<form name="myForm" id="myForm" action="calculateWQ"
+onsubmit="submitForm()" method="post" enctype=multipart/form-data>
+Region: <input type="text" name="region" value="San Francisco Bay, CA"><br>
+  Station: <input type="text" name="station" value="China Camp"><br>
+  From: <input type="date" name="start_date" value="2017-01-01"><br>
+  To: <input type="date" name="end_date" value="2017-01-31"><br>
+ You want to upload file?<br>
+  <input type="radio" name="fileupload" value="yes" > Yes<br>
+  <input type="radio" name="fileupload" value="no" checked> No<br>
+  <input type="file" name="file" ><br>
+  You want to get data from webservice?<br>
+  <input type="radio" name="getdatafromweb" value="yes" checked> Yes<br>
+  <input type="radio" name="getdatafromweb" value="no" > No<br>
+  Data cleaning:<br>
+  <input type="radio" name="clean" value="yes" checked> Yes<br>
+  <input type="radio" name="clean" value="no" > No<br>
+
+  Parameters selection:<br>
+    <input type="checkbox" name="completeness" value="completeness" checked> completeness<br>
+    <input type="checkbox" name="accuracy" value="accuracy" checked> completeness<br>
+    <input type="checkbox" name="timeliness" value="timeliness" checked> uniqueness<br>
+    <input type="checkbox" name="uniqueness" value="uniqueness" checked> uniqueness<br>
+    <input type="checkbox" name="validity" value="validity" checked> uniqueness<br>
+    <input type="checkbox" name="consistency" value="consistency" checked> uniqueness<br>
+    <input type="checkbox" name="reliability" value="reliability" checked> reliability<br>
+    <input type="checkbox" name="availability" value="availability" checked> availability<br>
+    <input type="checkbox" name="usability" value="usability" checked> availability<br>
+    Model: <br>
+    <input type="radio" name="model" value="montecarlo" > montecarlo<br>
+    <input type="radio" name="model" value="linear" > linear<br>
+
+    validationtype :<br>
+  <input type="radio" name="validationtype" value="modelbased" checked> modelbased<br>
+  <input type="radio" name="validationtype" value="toolbased" > toolbased<br>
+
+    modelBasedValidationType :<br>
+  <input type="radio" name="modelBasedValidationType" value="stationbased" checked> station based<br>
+  <input type="radio" name="modelBasedValidationType" value="regionbased" > region based<br>
+
+<input type="submit" value="Submit">
+</form>
+</body>
+</html>

@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en"><head>
+
+<title>Quality Assurance Platform</title>
+<link href="../static/styles/demo_style.css" rel="stylesheet" type="text/css">
+<!-- https://github.com/mstratman/jQuery-Smart-Wizard/blob/master/README.md -->
+<link href="../static/styles/smart_wizard.css" rel="stylesheet" type="text/css">
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script type="text/javascript" src="../static/js/jquery-2.0.0.min.js"></script>
+<script type='text/javascript' src='../static/js/knockout-3.4.2.js'></script>
+
+<script type="text/javascript" src="../static/js/model.js"></script>
+<script type="text/javascript" src="../static/js/jquery.smartWizard.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+    	// Smart Wizard
+  		$('#wizard').smartWizard({onFinish:onFinishCallback});
+
+  		function onFinishCallback(objs, context){
+  	        if(validateAllSteps()){
+  	        	$( "#accordion" ).accordion( "option", "active", 1 );
+  	        	//showMessage();
+  	        }
+  	    }
+  		// Your Step validation logic
+  	    function validateSteps(stepnumber){
+  	        var isStepValid = true;
+  	        // validate step 1
+  	        if(stepnumber == 1){
+  	            // Your step validation logic
+  	            // set isStepValid = false if has errors
+  	        }
+  	        // ...      
+  	    }
+  	    function validateAllSteps(){
+  	        var isStepValid = true;
+  	        // all step validation logic     
+  	        return isStepValid;
+  	    } 
+      function showMessage()
+      {
+    	  alert('Hello');
+      }
+      $( "#accordion" ).accordion({collapsible: true});
+      $( "#collectionaccordion" ).accordion();
+      
+		});
+    
+  
+</script>
+ <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load("current", {packages:["corechart","gauge","table"]});
+      google.charts.setOnLoadCallback(drawChart);
+      google.charts.setOnLoadCallback(drawGuageChart);
+      google.charts.setOnLoadCallback(drawTable);
+
+      function drawTable() {
+          var data = new google.visualization.DataTable();
+          data.addColumn('string', 'Name');
+          data.addColumn('number', 'Salary');
+          data.addColumn('boolean', 'Full Time Employee');
+          data.addRows([
+            ['Mike',  {v: 10000, f: '$10,000'}, true],
+            ['Jim',   {v:8000,   f: '$8,000'},  false],
+            ['Alice', {v: 12500, f: '$12,500'}, true],
+            ['Bob',   {v: 7000,  f: '$7,000'},  true]
+          ]);
+
+          var table = new google.visualization.Table(document.getElementById('table_div'));
+
+          table.draw(data, {showRowNumber: true, width: '100%', height: '100%'});
+        }
+      function drawGuageChart() {
+
+        var guagedata = google.visualization.arrayToDataTable([
+          ['Label', 'Value'],
+          ['Memory', 80],
+          ['CPU', 55],
+          ['Network', 68]
+        ]);
+
+        var options = {
+          width: 400, height: 120,
+          redFrom: 90, redTo: 100,
+          yellowFrom:75, yellowTo: 90,
+          minorTicks: 5
+        };
+
+        var chart = new google.visualization.Gauge(document.getElementById('chart_div'));
+
+        chart.draw(guagedata, options);
+
+        setInterval(function() {
+        	guagedata.setValue(0, 1, 40 + Math.round(60 * Math.random()));
+          chart.draw(guagedata, options);
+        }, 13000);
+        setInterval(function() {
+        	guagedata.setValue(1, 1, 40 + Math.round(60 * Math.random()));
+          chart.draw(guagedata, options);
+        }, 5000);
+        setInterval(function() {
+        	guagedata.setValue(2, 1, 60 + Math.round(20 * Math.random()));
+          chart.draw(guagedata, options);
+        }, 26000);
+      }
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['Task', 'Hours per Day'],
+          ['Work',     11],
+          ['Eat',      2],
+          ['Commute',  2],
+          ['Watch TV', 2],
+          ['Sleep',    7]
+        ]);
+
+        var options = {
+          title: 'Quality',
+          pieHole: 0.4,
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('donutchart'));
+        chart.draw(data, options);
+      }
+      function initMap() {
+        var map = new google.maps.Map(document.getElementById('regionMap'), {
+          zoom: 4,
+          center: {lat: 37.548839, lng: -122.2597169},
+          zoomControl: true,
+          scaleControl: true
+        });
+      }
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDOKQ7m8UJHH0nVxIrd6yNFa44oa-iK6tM&callback=initMap">
+    </script>
+    <style>
+    .center {
+    margin: auto;
+    width: 70%;
+    border: 1px solid grey;
+    padding: 10px;
+}
+#regionMap {
+        height: 250px;
+        width: 400px;
+       
+      }
+      
+.collectioncontainer {
+    width: 100%;
+    height: 200px;
+    margin: auto;
+    padding: 10px;
+}
+.collectionleftpanel {
+    width: 40%;
+    height: 200px;
+    float: left;
+}
+.collectionrightpanel {
+    margin-left: 30%;
+    height: 200px;
+   }
+    </style>
+    
+</head><body>
+
+<div class="demoHead">
+  <div>
+    <div style="float:left;">
+      <h1>Big Data Quality Assurance Platform</h1>
+      <h2>Interface to provide various parameter and cleanse data</h2>
+    </div>
+   
+    <div style="clear:both;"></div>
+  </div>
+
+ 
+
+</div>
+<div id="mainContent" class="center">
+<div id="accordion">
+  <h3>Provide filter criteria</h3>
+  <div>
+
+<!-- Smart Wizard -->
+        
+  		<div id="wizard" class="swMain">
+
+  			<div>
+            <h3 class="StepTitle">Data Source</h3>
+           <div>
+           <section class="collectioncontainer">
+    <div class="collectionleftpanel">
+           <div><strong>Upload CSV :</strong>       <input type="file" value="Browse" /></div>
+           -- Or --
+           <div>Get Data From Database/Web Service
+           
+           </div>
+           <h6>Note:Based on below criteria, processor will search data into database. If data is not aviailable, then data will get retrieve via web service.</h6>
+          
+          <p>
+    Destination country:
+    <select data-bind="options: availableCountries"></select>
+</p>
+        
+    <table>
+    <tr><td>Region</td><td><select name="region">
+    <option>San Francisco Bay, CA</option>
+    <option>Elkhorn Slough, CA</option>
+    <option>Tijuana River, CA</option>
+    </select></td></tr>
+    <tr><td>Station</td><td><select name="station">
+    <option>Gallina Creek</option>
+    <option>Malad</option>
+    <option>China Camp</option>
+    </select></td></tr>
+    <tr><td>Start Date</td><td><input type="text"></input></td></tr>
+    <tr><td>End Date</td><td><input type="text"></input></td></tr>
+    </table>
+    
+    
+    </div>
+    <div class="collectionrightpanel">
+    <div id="regionMap"></div>
+  </div>
+  </section></div>
+  
+  
+        </div>
+  			<div>
+            <h2 class="StepTitle">Cleaning</h2>
+            <p>Do you want to perform data cleaning operation?
+            </p>
+            <p>
+           <input type="radio" id="radperformcleaningYes" name ="radperformcleaning"> Yes
+                <input type="radio" id="radperformcleaningNo" name ="radperformcleaning"> No
+            </p>
+                <p>
+                    Some description will come here...
+                </p>
+        </div>
+  			<div>
+            <h2 class="StepTitle">Apply Filter</h2>
+            <p>
+                <input type="checkbox"> Completeness
+                <input type="checkbox"> Accuracy
+                <input type="checkbox"> Timeliness
+                <input type="checkbox"> Uniqueness
+                <input type="checkbox"> Validity
+                <input type="checkbox"> Consistency
+                <input type="checkbox"> Reliablity
+                <input type="checkbox"> Usability
+            </p>
+            <p>
+            Some description will come here...
+
+            </p>
+                <p>Model Selection</p>
+                <input type="radio" value="Model 1" name="modeltype"> Model 1
+                <input type="radio" value="Model 2" name="modeltype"> Model 2
+
+                <p>
+            Some description will come here...
+
+            </p>
+        </div>
+  			<div>
+            <h2 class="StepTitle">Validation</h2>
+
+                <div  style="border: solid 1px #3b6680;width:400px;padding: 5px">
+                <input type="radio" name="validationtype"> Tool Based
+
+
+                <input type="radio" name="validationtype" selected> Model Based
+                <div style=" padding: 5px; margin-left: 20px;margin-top5px;border : solid 1px white">
+<input type="radio" name="Region Based"> Region Based
+                    <input type="radio" name="Station Based"> Station Based
+                    </div>
+
+            </div>
+        </div>
+  		</div>
+<!-- End SmartWizard Content -->
+
+  
+  </div>
+
+
+  <h3>Result</h3>
+  <div> <div id="donutchart" ></div> 
+  <div id="chart_div" ></div>
+   <div id="table_div"></div></div>
+  </div>
+  </div>
+</body>
+</html>

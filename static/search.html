@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+<link rel="stylesheet" href="../static/kendo/styles/kendo.common.min.css" />
+    <link rel="stylesheet" href="../static/kendo/styles/kendo.default.min.css" />
+    <link rel="stylesheet" href="../static/kendo/styles/kendo.default.mobile.min.css" />
+
+    <script src="../static/kendo/js/jquery.min.js"></script>
+    <script src="../static/kendo/js/kendo.core.min.js"></script>
+<script src="../static/kendo/js/kendo.data.min.js"></script>
+    <script src="../static/kendo/js/kendo.all.min.js"></script>
+    <script src="../static/js/common.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+     // google.charts.load("current", {packages:["corechart","gauge","table"]});
+     // google.charts.setOnLoadCallback(drawGuageChart);
+
+
+
+
+      function initMap() {
+        var map = new google.maps.Map(document.getElementById('regionMap'), {
+          zoom: 4,
+          center: {lat: 37.548839, lng: -122.2597169},
+          zoomControl: true,
+          scaleControl: true
+        });
+      }
+    </script>
+     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDOKQ7m8UJHH0nVxIrd6yNFa44oa-iK6tM&callback=initMap">
+    </script>
+ <style>
+    .demo-section {
+     overflow: auto;
+    }
+    .metrotable {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .metrotable > thead > tr > th
+    {
+        font-size: 1.3em;
+        padding-top: 0;
+        padding-bottom: 5px;
+    }
+
+     #regionMap {
+        height: 250px;
+        width: 400px;
+        border: 1px dimgrey;
+      }
+            </style>
+    </head>
+<body>
+
+<div id="searchtemplate" >
+Region <select id="dropdownregion" style="width: 200px;" >
+            </select>
+
+Station <select id="dropdownstation"> </select>
+From <input id="fromdatepicker" value="03/26/2017" style="width: 150px" />
+To <input id="todatepicker" value="03/26/2017" style="width: 150px" />
+<input value="Search" type="button">
+
+    <hr/>
+    </div>
+
+
+
+
+<div id="grid"></div>
+<hr/>
+<div>Dimension : By Region </div>
+<div id="guagechart"></div>
+<hr/>
+<div>
+<div id="barchart" style="width: 900px; height: 300px;float: left"></div>
+
+<div id="regionMap" ></div>
+</div>
+
+
+<script>
+$(document).ready(function() {
+    // create a template using the above definition
+var validatedData = qap.getResult();
+
+    var dataSource = new kendo.data.DataSource({
+        data: validatedData,
+        change: function() { // subscribe to the CHANGE event of the data source
+            //$("#validatedResultSet tbody").html(kendo.render(template, this.view())); // populate the table
+        }
+    });
+
+    // read data from the "movies" array
+    dataSource.read();
+
+    var bindResultGrid = function () {
+
+         $("#grid").kendoGrid({
+                dataSource: dataSource,
+                selectable: "row",
+              change: function(e) {
+                var selectedRows = this.select();
+                var selectedDataItems = [];
+                 console.log(this.dataItem(selectedRows[0]));
+                 showdashboard(this.dataItem(selectedRows[0]));
+               /* for (var i = 0; i < selectedRows.length; i++) {
+                  var dataItem = this.dataItem(selectedRows[i]);
+                  selectedDataItems.push(dataItem);
+
+
+                }*/
+                // selectedDataItems contains all selected data items
+              },
+               // navigatable: true,
+                 // navigate: function(e) {
+                 //   console.log(e.element); // displays the newly highlighted cell
+                //  },
+                                //height: 550,
+                groupable: false,
+                sortable: true,
+                pageable: {
+                    refresh: true,
+                    pageSizes: true,
+                    buttonCount: 5
+                },
+                columns: [{
+                    field: "Region",
+                    title: "Region",
+                    width: 240
+                }, {
+                    field: "Station",
+                    title: "Station"
+                }, {
+                    field: "From",
+                    title: "From"
+                }, {
+                    field: "To",
+                    title: "To"
+                }, {
+                    field: "IsCleaned",
+                    title: "Is Cleaned"
+                }, {
+                    field: "OverallQuality",
+                    width: 150
+                }]
+            });
+    };
+
+    var bindregion = function () {
+            var regions = qap.getRegions();
+      $("#dropdownregion").kendoDropDownList({
+          dataTextField: "RegionName",
+                        dataValueField: "RegionId",
+                        dataSource: regions,
+                        index: 0,
+                        change: onRegionChange
+      });
+    function onRegionChange() {
+                        var regionId = $("#dropdownregion").val();
+                      //alert(regionId);
+                    };
+    };
+
+    var bindstation = function () {
+        var regionId =1;
+      var stations = qap.getStationsByRegionId(regionId);
+       $("#dropdownstation").kendoDropDownList({
+          dataTextField: "StationName",
+                        dataValueField: "StationCode",
+                        dataSource: stations,
+                        index: 0,
+                        change: onStatusChange
+      });
+        function onStatusChange() {
+                        var regionId = $("#dropdownstation").val();
+                      //alert(regionId);
+                    };
+    };
+
+    var drawGuageChart = function(model) {
+        var guagedata = google.visualization.arrayToDataTable([
+          ['Label', 'Value'],
+          ['Completeness', model.Completeness],
+          ['Accuracy', model.Accuracy],
+          ['Timeliness', model.Timeliness],
+            ['Uniqueness', model.Uniqueness],
+            ['Validity', model.Validity],
+            ['Consistency', model.Consistency],
+            ['Reliability', model.Reliability],
+            ['Usability', model.Usability]
+        ]);
+
+        var options = {
+          //width: 400, height: 500,
+          greenFrom: 85, greenTo: 100,
+          yellowFrom:25, yellowTo: 85,
+          redFrom:0, redTo: 25,
+          minorTicks: 5
+        };
+
+        var chart = new google.visualization.Gauge(document.getElementById('guagechart'));
+
+        chart.draw(guagedata, options);
+
+      };
+    var drawBarGraph = function(model) {
+        var data = google.visualization.arrayToDataTable([
+          ['Element', 'Density', { role: "style" }],
+          ['Completeness', model.Completeness,"silver"],
+          ['Accuracy', model.Accuracy,"purple"],
+          ['Timeliness', model.Timeliness,"skyblue"],
+            ['Uniqueness', model.Uniqueness,"black"],
+            ['Validity', model.Validity,"brown"],
+            ['Consistency', model.Consistency,"yellow"],
+            ['Reliability', model.Reliability,"green"],
+            ['Usability', model.Usability,"blue"]
+        ]);
+
+       var view = new google.visualization.DataView(data);
+      view.setColumns([0, 1,
+                       { calc: "stringify",
+                         sourceColumn: 1,
+                         type: "string",
+                         role: "annotation" },
+                       2]);
+
+      var options = {
+        title: "Quality Rating in Percentage",
+        width: 600,
+        height: 400,
+        bar: {groupWidth: "95%"},
+        legend: { position: "none" },
+      };
+      var chart = new google.visualization.BarChart(document.getElementById("barchart"));
+      chart.draw(view, options);
+
+      };
+    var showdashboard = function (item) {
+
+        var parameter= item.Parameters;
+        console.log(parameter);
+
+    var DashBoard = new Object();
+
+            DashBoard.Completeness = parameter.Completeness;
+            DashBoard.Accuracy = parameter.Accuracy;
+            DashBoard.Timeliness = parameter.Timeliness;
+            DashBoard.Uniqueness = parameter.Uniqueness;
+            DashBoard.Validity =parameter.Validity;
+            DashBoard.Consistency = parameter.Consistency;
+            DashBoard.Reliability =parameter.Reliability;
+            DashBoard.Usability = parameter.Usability;
+    google.charts.load("current", {packages:["corechart","gauge","table"]});
+      google.charts.setOnLoadCallback(drawGuageChart(DashBoard));
+      google.charts.setOnLoadCallback(drawBarGraph(DashBoard));
+
+    };
+    bindregion();
+    bindstation();
+    bindResultGrid();
+    $("#fromdatepicker").kendoDatePicker();
+    $("#todatepicker").kendoDatePicker();
+});
+</script>
+</body>
+</html>

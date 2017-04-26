@@ -90,24 +90,28 @@ class YearlyQPCalculation:
         return correctness
 
     def calculate_yearly_parameters(self, _years):
+        """
+        Call this function to get quality parameters on a yearly basis
+        :param _years: List of years for which data quality parameters are to be calculated.
+        for e.g. years = [2016, 2017]
+        :return: Dictionary of dictionaries
+        for e.g. {'Completeness': {2016: '98.05', 2017: '0.00'}, 'Timeliness': {2016: '95.00', 2017: '95.00'}, 
+        'Correctness': {2016: '80.00', 2017: '80.00'}, 'Validity': {2016: '100.00', 2017: '0.00'}, 
+        'Uniqueness': {2016: '99.73', 2017: '0.00'}, 'Usability': {2016: '74.52', 2017: '0.00'}}
+        """
         years = _years
         for year in years:
             pattern = "/" + str(year) + " "
-            print pattern
+            #print pattern
             self.coll.aggregate([{"$match": {"DateTimeStamp": {"$regex": pattern}}}, {"$out": "temp_coll"}])
 
             self.coll = self.db.temp_coll
-
+            # print temp_total_docs
             temp_total_docs = self.coll.find().count()
-            #print temp_total_docs
+            # print temp_total_fields
             temp_total_fields = temp_total_docs * self.count
-            #print temp_total_fields
-            completeness = self.get_completeness(temp_total_fields)
 
-            if completeness:
-                usability = completeness
-            else:
-                usability = 1
+            completeness = self.get_completeness(temp_total_fields)
             self.monthly_parameters["Completeness"][year] = "{0:.2f}".format(completeness)
 
             uniqueness = self.get_uniqueness(temp_total_docs)
@@ -117,18 +121,19 @@ class YearlyQPCalculation:
             self.monthly_parameters["Validity"][year] = "{0:.2f}".format(validity)
 
             timeliness = self.get_timeliness()
-            usability = usability * timeliness
             self.monthly_parameters["Timeliness"][year] = "{0:.2f}".format(timeliness)
 
             correctness = self.get_correctness()
-            usability = usability * correctness
             self.monthly_parameters["Correctness"][year] = "{0:.2f}".format(correctness)
 
-            self.monthly_parameters["Usability"][year] = "{0:.2f}".format(usability/10000.0)
+            usability = completeness * timeliness * correctness/10000.0
+            self.monthly_parameters["Usability"][year] = "{0:.2f}".format(usability)
 
             self.coll = self.db.FMWQ_e
-        print self.monthly_parameters
+        return self.monthly_parameters
 
+# Instantiating the class for testing purpose
 params = YearlyQPCalculation()
-years = [2016]
-params.calculate_yearly_parameters(years)
+years = [2016, 2017]
+p= params.calculate_yearly_parameters(years)
+print p

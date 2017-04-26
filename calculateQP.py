@@ -83,32 +83,40 @@ class QPCalculation:
         return correctness
 
     def get_usability(self):
-        usability = self.parameters["Completeness"] * (self.parameters["Correctness"] / 100.0) * (
-        self.parameters["Timeliness"] / 100.0)
+        usability = self.parameters["Completeness"] * (self.parameters["Correctness"] / 100.0) * (self.parameters["Timeliness"] / 100.0)
         return usability
 
     def calculate_parameters(self):
+        """
+        Call this function to get Quality Parameters of the entire data set.
+        :return: dictionary self.parameters
+        {'Overall Data Quality': '91.22', 'Completeness': '98.05', 'Timeliness': '95.00', 
+        'Correctness': '80.00', 'Validity': '100.00', 'Uniqueness': '99.73', 'Usability': '74.52'}
+        """
         completeness = self.get_completeness()
-        self.parameters["Completeness"] = completeness
+        self.parameters["Completeness"] = "{0:.2f}".format(completeness)
 
         uniqueness = self.get_uniqueness()
-        self.parameters["Uniqueness"] = uniqueness
+        self.parameters["Uniqueness"] = "{0:.2f}".format(uniqueness)
 
         validity = self.get_validity()
-        self.parameters["Validity"] = validity
+        self.parameters["Validity"] = "{0:.2f}".format(validity)
 
         timeliness = self.get_timeliness()
-        self.parameters["Timeliness"] = timeliness
+        self.parameters["Timeliness"] = "{0:.2f}".format(timeliness)
 
         correctness = self.get_correctness()
-        self.parameters["Correctness"] = correctness
+        self.parameters["Correctness"] = "{0:.2f}".format(correctness)
 
-        usability = self.get_usability()
-        self.parameters["Usability"] = usability
+        usability = completeness*timeliness*correctness/10000.0
+        self.parameters["Usability"] = "{0:.2f}".format(usability)
 
-        print self.parameters
+        overall_data_quality = (completeness+uniqueness+validity+timeliness+correctness+usability)/6.0
+        self.parameters["Overall Data Quality"] = "{0:.2f}".format(overall_data_quality)
 
+        return self.parameters
 
+# Instantiating the class for testing purpose
 params = QPCalculation()
-params.calculate_parameters()
-
+p = params.calculate_parameters()
+print p

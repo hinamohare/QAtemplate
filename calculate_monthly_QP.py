@@ -90,10 +90,28 @@ class MonthlyQPCalculation:
         return correctness
 
     def calculate_monthly_parameters(self):
+        """
+        Call this function to get quality parameters on a monthly basis
+        :return: dictionary of dictionaries self.monthly_parameters
+        for e.g. {'Completeness': {'Mar': '99.95', 'Feb': '99.95', 'Aug': '99.97', 'Sep': '99.92', 'Apr': '99.99', 
+        'Jun': '99.95', 'Jul': '100.00', 'Jan': '77.97', 'May': '99.86', 'Nov': '100.00', 'Dec': '99.97', 'Oct': '100.00'}, 
+        'Timeliness': {'Mar': '95.00', 'Feb': '95.00', 'Aug': '95.00', 'Sep': '95.00', 'Apr': '95.00', 'Jun': '95.00', 
+        'Jul': '95.00', 'Jan': '95.00', 'May': '95.00', 'Nov': '95.00', 'Dec': '95.00', 'Oct': '95.00'}, 
+        'Correctness': {'Mar': '80.00', 'Feb': '80.00', 'Aug': '80.00', 'Sep': '80.00', 'Apr': '80.00', 'Jun': '80.00',
+         'Jul': '80.00', 'Jan': '80.00', 'May': '80.00', 'Nov': '80.00', 'Dec': '80.00', 'Oct': '80.00'}, 
+         'Validity': {'Mar': '100.00', 'Feb': '100.00', 'Aug': '100.00', 'Sep': '100.00', 'Apr': '100.00', 'Jun': '100.00', 
+         'Jul': '100.00', 'Jan': '100.00', 'May': '100.00', 'Nov': '100.00', 'Dec': '100.00', 'Oct': '100.00'}, 
+         'Uniqueness': {'Mar': '100.00', 'Feb': '100.00', 'Aug': '100.00', 'Sep': '100.00', 'Apr': '100.00', 'Jun': '100.00', 
+         'Jul': '100.00', 'Jan': '97.51', 'May': '100.00', 'Nov': '100.00', 'Dec': '99.40', 'Oct': '100.00'}, '
+         Usability': {'Mar': '75.96', 'Feb': '75.96', 'Aug': '75.98', 'Sep': '75.94', 'Apr': '75.99', 'Jun': '75.96', 
+         'Jul': '76.00', 'Jan': '59.25', 'May': '75.89', 'Nov': '76.00', 'Dec': '75.98', 'Oct': '76.00'}}
+        """
         month = 0
+        month_mapping ={1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun", 7: "Jul", 8: "Aug", 9: "Sep", 10: "Oct", 11:"Nov", 12: "Dec"}
         months = ["^01/", "^02/", "^03/", "^04/", "^05/", "^06/", "^07/", "^08/", "^09/", "^10/", "^11/", "^12/"]
         for _ in months:
             month += 1
+            month_key = month_mapping[month]
             #print _
             self.coll.aggregate([{"$match": {"DateTimeStamp": {"$regex": _}}}, {"$out": "temp_coll"}])
 
@@ -104,31 +122,27 @@ class MonthlyQPCalculation:
             temp_total_fields = temp_total_docs * self.count
             #print temp_total_fields
             completeness = self.get_completeness(temp_total_fields)
-
-            if completeness:
-                usability = completeness
-            else:
-                usability = 1
-            self.monthly_parameters["Completeness"][month] = "{0:.2f}".format(completeness)
+            self.monthly_parameters["Completeness"][month_key] = "{0:.2f}".format(completeness)
 
             uniqueness = self.get_uniqueness(temp_total_docs)
-            self.monthly_parameters["Uniqueness"][month] = "{0:.2f}".format(uniqueness)
+            self.monthly_parameters["Uniqueness"][month_key] = "{0:.2f}".format(uniqueness)
 
             validity = self.get_validity(temp_total_fields)
-            self.monthly_parameters["Validity"][month] = "{0:.2f}".format(validity)
+            self.monthly_parameters["Validity"][month_key] = "{0:.2f}".format(validity)
 
             timeliness = self.get_timeliness()
-            usability = usability * timeliness
-            self.monthly_parameters["Timeliness"][month] = "{0:.2f}".format(timeliness)
+            self.monthly_parameters["Timeliness"][month_key] = "{0:.2f}".format(timeliness)
 
             correctness = self.get_correctness()
-            usability = usability * correctness
-            self.monthly_parameters["Correctness"][month] = "{0:.2f}".format(correctness)
+            self.monthly_parameters["Correctness"][month_key] = "{0:.2f}".format(correctness)
 
-            self.monthly_parameters["Usability"][month] = "{0:.2f}".format(usability/10000.0)
+            usability = completeness * correctness * timeliness/10000.0
+            self.monthly_parameters["Usability"][month_key] = "{0:.2f}".format(usability)
 
             self.coll = self.db.FMWQ_e
-        print self.monthly_parameters
+        return self.monthly_parameters
 
+# Instantiating the class for testing purpose
 params = MonthlyQPCalculation()
-params.calculate_monthly_parameters()
+p = params.calculate_monthly_parameters()
+print p

@@ -51,7 +51,8 @@ class FileInputProcess:
         :return: {'Overall Data Quality': '91.22', 'Completeness': '98.05', 'Timeliness': '95.00', 
         'Correctness': '80.00', 'Validity': '100.00', 'Uniqueness': '99.73', 'Usability': '74.52'}
         """
-        result = {'qpDefault': '', 'qpYearly':'', 'qpMonthly':''}
+        result = {'Region':region,'Station':station, 'FromDate':start_date, 'EndDAte': end_date,\
+                  'IsCleaned':isCleaningRequired,'DefaultQualityParameters': '', 'YearlyQualityParameters':'', 'MonthlyQualityParameters':''}
         try:
             if isCleaningRequired:
                 # perform clenaing
@@ -65,7 +66,7 @@ class FileInputProcess:
             #now data is in processing collection (cleaned or uncleaned) db = qaplatformdb and collection = wqprocess contains the cleaned data
             #defaultQAParameters = {}
             qpDefaultObj = QPCalculation()
-            result['qpDefault'] = qpDefaultObj.calculate_parameters(parameters)
+            result['DefaultQualityParameters'] = qpDefaultObj.calculate_parameters(parameters)
             #{'Overall Data Quality': '91.22', 'Completeness': '98.05', 'Timeliness': '95.00',
             #'Correctness': '80.00', 'Validity': '100.00', 'Uniqueness': '99.73', 'Usability': '74.52'}
             if yearly :
@@ -73,14 +74,16 @@ class FileInputProcess:
                 for year in range(int(startYear), int(endYear)+1):
                     _years.append(year)
                 qpYearlyObj = YearlyQPCalculation()
-                result['qpYearly'] = qpYearlyObj.calculate_yearly_parameters(_years, parameters)
+                result['YearlyQualityParameters'] = qpYearlyObj.calculate_yearly_parameters(_years, parameters)
 
             if monthly :
                 _yearsForMonthly = []
                 for year in range(int(monthStartDate), int(monthEndDate)+1):
                     _years.append(year)
                 qpMonthlyObj = MonthlyQPCalculation()
-                result['qpMonthly'] = qpMonthlyObj.calculate_monthly_parameters(_yearsForMonthly, parameters)
+                result['MonthlyQualityParameters'] = qpMonthlyObj.calculate_monthly_parameters(_yearsForMonthly, parameters)
+
+            #insert the result into validated dataset
 
         except Exception, e:
             print "Failed to calculate quality "+str(e)

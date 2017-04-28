@@ -32,7 +32,7 @@ class DataCleaning :
                      'EC_DO_pct', 'EC_Depth',
                      'EC_Level', 'EC_Sal', 'EC_SpCond', 'EC_SpCond', 'EC_Temp', 'EC_Turb', 'EC_cDepth', 'EC_cLevel',
                      'EC_pH', 'F_ChlFluor',
-                     'F_Level', 'F_cLevel', 'F_cLevel', 'ID', 'Level', 'MarkAsDeleted', 'Vented', '_id', 'cLevel']
+                     'F_Level', 'F_cLevel', 'F_cLevel', 'ID', 'MarkAsDeleted', 'Vented', '_id', 'cLevel','utcStamp']
         for column in columnSet:
             if column in df:
                 df.drop(column, axis=1, inplace=True)
@@ -53,7 +53,7 @@ class DataCleaning :
         columnSet = ['Station_Code', 'isSWMP', 'Historical', 'ProvisionalPlus', 'F_Record', 'F_Temp', 'F_SpCond','F_Sal','F_DO_pct',
                      'F_DO_mgl', 'F_Depth', 'F_cDepth', 'F_pH', 'F_Turb', 'ChlFluor', 'EC_ChlFluor','EC_DO_mgl','EC_DO_pct', 'EC_Depth',
                      'EC_Level', 'EC_Sal', 'EC_SpCond', 'EC_SpCond', 'EC_Temp', 'EC_Turb','EC_cDepth', 'EC_cLevel','EC_pH', 'F_ChlFluor',
-                     'F_Level', 'F_cLevel', 'F_cLevel', 'ID', 'Level', 'MarkAsDeleted', 'Vented','_id', 'cLevel']
+                     'F_Level', 'F_cLevel', 'F_cLevel', 'ID', 'MarkAsDeleted', 'Vented','_id', 'cLevel','utcStamp']
         for column in columnSet:
             if column in df:
                 df.drop(column, axis=1, inplace=True)

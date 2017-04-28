@@ -6,9 +6,9 @@ class YearlyQPCalculation:
     def __init__(self):
         self.client = MongoClient()
         # Select appropriate database
-        self.db = self.client.SFB
+        self.db = self.client.qaplatformdb
         # Select appropriate collection
-        self.coll = self.db.FMWQ_e
+        self.coll = self.db.wqprocess
         # Select the first document
         self.doc = self.coll.find_one()
 
@@ -89,7 +89,7 @@ class YearlyQPCalculation:
         correctness = 80.0
         return correctness
 
-    def calculate_yearly_parameters(self, _years):
+    def calculate_yearly_parameters(self, _years, params):
         """
         Call this function to get quality parameters on a yearly basis
         :param _years: List of years for which data quality parameters are to be calculated.
@@ -99,6 +99,10 @@ class YearlyQPCalculation:
         'Correctness': {2016: '80.00', 2017: '80.00'}, 'Validity': {2016: '100.00', 2017: '0.00'}, 
         'Uniqueness': {2016: '99.73', 2017: '0.00'}, 'Usability': {2016: '74.52', 2017: '0.00'}}
         """
+        if params['Usability'] == "true":
+            params['Completeness'] = 'true'
+            params['Correctness'] = 'true'
+            params['Timeliness'] = 'true'
         years = _years
         for year in years:
             pattern = "/" + str(year) + " "
@@ -111,25 +115,43 @@ class YearlyQPCalculation:
             # print temp_total_fields
             temp_total_fields = temp_total_docs * self.count
 
-            completeness = self.get_completeness(temp_total_fields)
-            self.monthly_parameters["Completeness"][year] = "{0:.2f}".format(completeness)
+            if params['Completeness'] == 'true':
+                completeness = self.get_completeness(temp_total_fields)
+                self.monthly_parameters["Completeness"][year] = "{0:.2f}".format(completeness)
+            else :
+                self.monthly_parameters["Completeness"] = {}
 
-            uniqueness = self.get_uniqueness(temp_total_docs)
-            self.monthly_parameters["Uniqueness"][year] = "{0:.2f}".format(uniqueness)
+            if params['Uniqueness'] == 'true':
+                uniqueness = self.get_uniqueness(temp_total_docs)
+                self.monthly_parameters["Uniqueness"][year] = "{0:.2f}".format(uniqueness)
+            else:
+                self.monthly_parameters["Uniqueness"] = {}
 
-            validity = self.get_validity(temp_total_fields)
-            self.monthly_parameters["Validity"][year] = "{0:.2f}".format(validity)
+            if params['Validity'] == 'true':
+                validity = self.get_validity(temp_total_fields)
+                self.monthly_parameters["Validity"][year] = "{0:.2f}".format(validity)
+            else:
+                self.monthly_parameters["Validity"] = {}
 
-            timeliness = self.get_timeliness()
-            self.monthly_parameters["Timeliness"][year] = "{0:.2f}".format(timeliness)
+            if params['Timeliness'] == 'true':
+                timeliness = self.get_timeliness()
+                self.monthly_parameters["Timeliness"][year] = "{0:.2f}".format(timeliness)
+            else:
+                self.monthly_parameters["Timeliness"] = {}
 
-            correctness = self.get_correctness()
-            self.monthly_parameters["Correctness"][year] = "{0:.2f}".format(correctness)
+            if params['Correctness'] == 'true':
+                correctness = self.get_correctness()
+                self.monthly_parameters["Correctness"][year] = "{0:.2f}".format(correctness)
+            else:
+                self.monthly_parameters["Correctness"] = {}
 
-            usability = completeness * timeliness * correctness/10000.0
-            self.monthly_parameters["Usability"][year] = "{0:.2f}".format(usability)
+            if params['Correctness'] == 'true':
+                usability = completeness * timeliness * correctness/10000.0
+                self.monthly_parameters["Usability"][year] = "{0:.2f}".format(usability)
+            else:
+                self.monthly_parameters["Usability"] = {}
 
-            self.coll = self.db.FMWQ_e
+            self.coll = self.db.wqprocess
         return self.monthly_parameters
 
 # Instantiating the class for testing purpose

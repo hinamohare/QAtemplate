@@ -95,12 +95,17 @@ class RegionData:
         database name: "qaplatformdb"
         collection name: "stationdata"
         This method is used to insert stations information into the collection
-        The information format is
-        {_id: regionId,
-        region: regionname,
-        stations: [{staion: staitonname, code: stationcode, lat: lattitude, lng: longitude},.....]
-        }
-        :return:
+        The input format is
+        post_data =[
+                    {RegionId: regionId,
+                    RegionName: regionname,
+                    Stations: [{StationName: staitonname, 
+                                StationCode: stationcode,
+                                 Lat: lattitude, 
+                                 Lon: longitude}
+                                 ,.....]
+                    }...]
+        :return: 
         """
 
         client = MongoClient()  # setting connection with the mongoclient
@@ -252,7 +257,7 @@ class RawData:
         db = client.qaplatformdb  # getting database
         collection = db.rawdata # getting rawdata collection
 
-        post_data = {'Region': region, 'Station': station, 'From': start_date, 'To': end_date,'Data': data}
+        post_data = {'RegionName': region, 'StationName': station, 'From': start_date, 'To': end_date,'Data': data}
         result = collection.insert_one(post_data)
         print ("inserted record id: " + result.inserted_id)
         print ('inserted validated data into the database')

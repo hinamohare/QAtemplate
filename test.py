@@ -1,3 +1,4 @@
+import os
 from pprint import pprint
 #from pymongo import MongoClient
 import json
@@ -14,13 +15,20 @@ data = {'region':"Padilla Bay, WA", 'stations':[
 
 obj = RegionData()
 """
+
+"""
+WEB API
+
 server = SOAPpy.SOAPProxy("http://cdmo.baruch.sc.edu/webservices2/requests.cfc?wsdl")
-responsedata =  server.exportAllParamsDateRangeXMLNew('pdbjewq', '2014-12-30', '2014-12-31','*')
+responsedata =  server.exportAllParamsDateRangeXMLNew('acegpwq', '2014-12-30', '2014-12-31','*')
 
 pythonObject = SOAPpy.Types.simplify(responsedata)
 #print responsedata
 dataArray =  pythonObject["returnData"]["data"]
-#print(dataArray)
+print(dataArray)
+
+"""
+"""
 client = pymongo.MongoClient()
 #db and collection for testing purpose
 db = client.currentTest
@@ -42,7 +50,7 @@ df.drop_duplicates(keep='first')
 collection.remove()
 collection.insert_many(df.to_dict('records'))
 pprint(list(collection.find()))
-""" code to import data from file to mongodb0
+ code to import data from file to mongodb0
 with open('ElkhornSlough,CA_SouthMarch_20141230_20141231.json') as data_file:
     data = json.load(data_file)
 client = MongoClient()  # setting connection with the mongoclient
@@ -51,3 +59,33 @@ collection = db.test #getting validateddata collection
 db.test.insert(data)
 print db.test.find().pretty()
 """
+"""
+import sys
+import pandas as pd
+import pymongo
+import json
+
+def import_content(filename):
+    mng_client = pymongo.MongoClient('localhost', 27017)
+    mng_db = mng_client['test'] # Replace mongo db name
+    collection_name = 'processing' # Replace mongo db collection name
+    db_cm = mng_db[collection_name]
+    #cdir = os.path.dirname(__file__)
+    #file_res = os.path.join(cdir, filepath)
+
+    data = pd.read_csv('./data/csv/'+filename)
+    data_json = json.loads(data.to_json(orient='records'))
+    db_cm.remove()
+    db_cm.insert(data_json)
+    print "data inserted succesfully"
+
+import_content('sample.csv')
+"""
+
+startYear = '2011'
+endYear = '2017'
+_years = []
+for year in range(int(startYear),int(endYear)+1):
+    _years.append(year)
+
+print _years

@@ -6,7 +6,7 @@ import uuid
 from flask import jsonify, request, session, json, redirect, flash
 from flask import Flask, render_template, app
 from model import RegionData, ValidatedData
-from process import DataProcessing
+from process import FileInputProcess, WebAPIInputProcess
 from werkzeug.utils import secure_filename
 
 
@@ -135,17 +135,67 @@ def getWaterQuality():
 
     station = input_json['Station']  # station name
 
-    start_date = input_json['FromDate']  # start_date name
+    start_date = input_json['FromDate']  # start_date format  mm/dd/yy
 
     end_date = input_json['ToDate']  # end_date name
 
-    clean = input_json["IsRequiredClean"]  #
+    clean = input_json["IsRequiredClean"]  # true or false
+    if clean == "true":
+        isCleaningRequired = True
+    else :
+        isCleaningRequired = False
 
-    source =input_json["Source"]#WebService or CSV
-    validationType = input_json['ValidationType'] #modelbased or toolbased
-    modelBasedSubType = input_json['ModelBasedSubType']#stationbased or regionbased
-    parameters = input_json['Parameters'] #parameters
-    filename = input_json['CsvFileName']
+    #validationType = input_json['ValidationType'] #modelbased or toolbased
+    #parameters = input_json['Parameters']
+    #parameters {  'Completeness': 'true', 'Timeliness': 'true', 'Correctness': 'true','Validity': 'true',
+     #                       'Uniqueness': 'true','Usability': 'true'}
+
+    monthlyValidation = input_json['MonthlyValidation'] #true/false
+    if monthlyValidation == "true":
+        monthly = True
+        monthStartDate = input_json['MonthStartDate'] #yyyy
+        monthEndDate = input_json['MonthEndDate'] #yyyy
+    else :
+        monthly = False
+        monthStartDate=''
+        monthEndDate =''
+
+    yearlyValidation = input_json['YearlyValidation'] #true/false
+    if yearlyValidation == "true":
+        yearly = True
+        startYear = input_json['StartYear'] #yyyy
+        endYear = input_json['EndYear'] #yyyy
+    else :
+        yearly = False
+        startYear=''
+        endYear = ''
+    {'Completeness': 'true', 'Timeliness': 'true', 'Correctness': 'true', 'Validity': 'true',
+     'Uniqueness': 'true', 'Usability': 'true'}
+    parameters = {'Completeness': input_json["Parameters"]["Completeness"],
+                  'Timeliness': input_json["Parameters"]["Timeliness"],
+                  'Correctness': input_json["Parameters"]["Correctness"],
+                  'Validity': input_json["Parameters"]["Validity"],
+                  'Uniqueness': input_json["Parameters"]["Uniqueness"],
+                  'Usability': input_json["Parameters"]["Usability"],
+                  }
+
+    source = input_json["Source"]  # WebService or CSV
+
+    # if source is user uploaded csv file
+    if source == 'CSV':
+        filename = input_json['CsvFileName'] #read filename
+        fileProcessObj = FileInputProcess();
+        result = fileProcessObj.process(region, station, start_date, end_date, filename,
+                                        isCleaningRequired, parameters, monthly,monthStartDate,monthEndDate, yearly, startYear, endYear);
+        return jsonify(data=result)
+
+    #source is WebService
+    else :
+        modelBasedSubType = input_json['ModelBasedSubType']  # stationbased or regionbased; only considered for source = WebService
+        pass
+
+
+
     """
     request body for webservice =>
     {'Source': 'WebService', 'CsvFileName': '98723420348.csv', 'Region': 'San Francisco Bay, CA',
@@ -154,6 +204,7 @@ def getWaterQuality():
                     'Validity': 'true', 'Consistency': 'true', 'Reliability': 'true', 'Usability': 'true',
                     'Availability': True}, 'Model': 'Model1', 'ValidationType': 'ModelBased',
      'ModelBasedSubType': 'StationBased'}
+     
      
      request body for file input =>
     {'Source': 'CSV', 'CsvFileName': '98723420348.csv', 'Region': 'San Francisco Bay, CA', 'Station': 'China Camp',
@@ -164,45 +215,9 @@ def getWaterQuality():
      'ModelBasedSubType': 'StationBased'}
      """
 
-    getdatafromWebAPI = True
-    if source =="CSV" :
-        csvfilename = input_json["CsvFileName"]
-        getdatafromWebAPI = False
 
 
 
-    parameters = {'isCompleteness': input_json["Parameters"]["Completeness"],
-                  'isAccuracy': input_json["Parameters"]["Accuracy"],
-                  'isTimeliness': input_json["Parameters"]["Timeliness"],
-                  'isUniqueness': input_json["Parameters"]["Uniqueness"],
-                  'isValidity': input_json["Parameters"]["Validity"],
-                  'isConsistency': input_json["Parameters"]["Consistency"],
-                  'isReliability': input_json["Parameters"]["Reliability"],
-                  'isAvailability': input_json["Parameters"]["Availability"],
-                  'isUsability': input_json["Parameters"]["Usability"],
-                  };
-
-    model = request.json["Model"]  #
-    data = ""
-    modelBasedValidationType =""
-
-    validationType = input_json["ValidationType"]
-    if (validationType == "Toolbased"):
-        pass
-    if (validationType == "Modelbased"):
-        modelBasedValidationType = input_json["ModelBasedSubType"]
-
-
-    if getdatafromWebAPI == True:
-        source = "webapi"
-        data = ""
-
-    processingObj = DataProcessing()
-    answer = processingObj.process(region, station, start_date, end_date, source, data, clean, modelBasedValidationType,
-                                   model, parameters)
-
-    result = {}
-    return jsonify(data=result)
 
 
 def allowed_file(filename):

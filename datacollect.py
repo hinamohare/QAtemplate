@@ -29,21 +29,24 @@ class DataCollectionFromWebService:
         filename = filename.replace("-","")
         print ("filename: "+filename)
         """
-        #obj =  RegionData()
-        #stationcode = obj.getStaionCode(region, station)
+        #date format for getting data from web service = yy/mm/dd
+        obj =  RegionData()
+        stationcode = obj.getStaionCode(region, station)
 
 
         server = SOAPpy.SOAPProxy("http://cdmo.baruch.sc.edu/webservices2/requests.cfc?wsdl")
 
         #stationcode="pdbjewq"
-        #responsedata =  server.exportAllParamsDateRangeXMLNew(stationcode, start_date, end_date,'*')
-        responsedata = server.exportAllParamsDateRangeXMLNew('pdbjewq','2014-12-30', '2014-12-31', '*')
+        responsedata =  server.exportAllParamsDateRangeXMLNew(stationcode, start_date, end_date,'*')
+        #responsedata = server.exportAllParamsDateRangeXMLNew('pdbjewq','2014-12-30', '2014-12-31', '*')
 
        # print responsedata
         pythonObject = SOAPpy.Types.simplify(responsedata)
         #jsonObject = json.dumps(pythonObject)
         #assert type(jsonObject) == str
         dataArray =  pythonObject["returnData"]["data"] # returns {  [{...},{....},.....]}
+
+        #data from webservice has date format  mm/dd/yy = 12/31/2014
         print(dataArray)
         return dataArray
         """
@@ -76,6 +79,4 @@ class DataCollectionFromWebService:
 
 
 
-obj = DataCollectionFromWebService()
-obj.getDatafromWebService('fd','df','df','fd')
 

@@ -5,9 +5,9 @@ class QPCalculation:
     def __init__(self):
         self.client = MongoClient()
         # Select appropriate database
-        self.db = self.client.SFB
+        self.db = self.client.qaplatformdb
         # Select appropriate collection
-        self.coll = self.db.FMWQ_e
+        self.coll = self.db.wqprocess
         # Select the first document
         self.doc = self.coll.find_one()
         # Find the total number of documents
@@ -86,30 +86,53 @@ class QPCalculation:
         usability = self.parameters["Completeness"] * (self.parameters["Correctness"] / 100.0) * (self.parameters["Timeliness"] / 100.0)
         return usability
 
-    def calculate_parameters(self):
+    def calculate_parameters(self, params):
         """
         Call this function to get Quality Parameters of the entire data set.
         :return: dictionary self.parameters
         {'Overall Data Quality': '91.22', 'Completeness': '98.05', 'Timeliness': '95.00', 
         'Correctness': '80.00', 'Validity': '100.00', 'Uniqueness': '99.73', 'Usability': '74.52'}
         """
-        completeness = self.get_completeness()
-        self.parameters["Completeness"] = "{0:.2f}".format(completeness)
+        if params['Usability'] == "true":
+            params['Completeness'] = 'true'
+            params['Correctness'] = 'true'
+            params['Timeliness'] = 'true'
 
-        uniqueness = self.get_uniqueness()
-        self.parameters["Uniqueness"] = "{0:.2f}".format(uniqueness)
+        if params['Completeness'] == 'true':
+            completeness = self.get_completeness()
+            self.parameters["Completeness"] = "{0:.2f}".format(completeness)
+        else :
+            self.parameters["Completeness"] = 0
 
-        validity = self.get_validity()
-        self.parameters["Validity"] = "{0:.2f}".format(validity)
+        if params['Uniqueness'] == 'true':
+            uniqueness = self.get_uniqueness()
+            self.parameters["Uniqueness"] = "{0:.2f}".format(uniqueness)
+        else :
+            self.parameters["Uniqueness"] = 0
 
-        timeliness = self.get_timeliness()
-        self.parameters["Timeliness"] = "{0:.2f}".format(timeliness)
+        if params['Validity'] == 'true':
+            validity = self.get_validity()
+            self.parameters["Validity"] = "{0:.2f}".format(validity)
+        else :
+            self.parameters["Validity"] = 0
 
-        correctness = self.get_correctness()
-        self.parameters["Correctness"] = "{0:.2f}".format(correctness)
+        if params['Timeliness'] == 'true':
+            timeliness = self.get_timeliness()
+            self.parameters["Timeliness"] = "{0:.2f}".format(timeliness)
+        else :
+            self.parameters["Timeliness"] = 0
 
-        usability = completeness*timeliness*correctness/10000.0
-        self.parameters["Usability"] = "{0:.2f}".format(usability)
+        if params['Correctness'] == 'true':
+            correctness = self.get_correctness()
+            self.parameters["Correctness"] = "{0:.2f}".format(correctness)
+        else :
+            self.parameters["Correctness"] = 0
+
+        if params['Usability'] == 'true':
+            usability = completeness*timeliness*correctness/10000.0
+            self.parameters["Usability"] = "{0:.2f}".format(usability)
+        else :
+            self.parameters["Usability"] = 0
 
         overall_data_quality = (completeness+uniqueness+validity+timeliness+correctness+usability)/6.0
         self.parameters["Overall Data Quality"] = "{0:.2f}".format(overall_data_quality)

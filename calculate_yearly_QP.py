@@ -155,7 +155,7 @@ class YearlyQPCalculation:
         return self.monthly_parameters
 
 # Instantiating the class for testing purpose
-params = YearlyQPCalculation()
-years = [2016, 2017]
-p= params.calculate_yearly_parameters(years)
-print p
+# params = YearlyQPCalculation()
+# years = [2016, 2017]
+# p= params.calculate_yearly_parameters(years)
+# print p

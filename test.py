@@ -1,11 +1,14 @@
 import os
 from pprint import pprint
-#from pymongo import MongoClient
+from pymongo import MongoClient
 import json
 #from model import RegionData
 import SOAPpy
 import pandas as pd
 import pymongo
+from DataCleaning import DataCleaning
+from model import RegionData
+#from datacollect import DataCollectionFromWebService
 """
 data = {'region':"Padilla Bay, WA", 'stations':[
                     {'station':"Bayview Channel", 'code': "pdbbywq", 'lat':"48.496139",'lng':"122.502114"},
@@ -17,17 +20,28 @@ obj = RegionData()
 """
 
 """
-WEB API
+#WEB API
 
 server = SOAPpy.SOAPProxy("http://cdmo.baruch.sc.edu/webservices2/requests.cfc?wsdl")
-responsedata =  server.exportAllParamsDateRangeXMLNew('acegpwq', '2014-12-30', '2014-12-31','*')
+responsedata =  server.exportAllParamsDateRangeXMLNew('kacsdwq', '2014-12-30', '2014-12-31','*')
 
 pythonObject = SOAPpy.Types.simplify(responsedata)
 #print responsedata
 dataArray =  pythonObject["returnData"]["data"]
-print(dataArray)
+#print(dataArray)
+
+obj = DataCleaning ()
+obj.cleanJSONData(json.dumps(dataArray))
 
 """
+# client = pymongo.MongoClient()
+# #db and collection for testing purpose
+# #self.db = self.client.currentTest
+# db = client.test
+# collection = db.processing
+# collection.remove()
+# collection.insert_many(dataArray)
+
 """
 client = pymongo.MongoClient()
 #db and collection for testing purpose
@@ -81,11 +95,64 @@ def import_content(filename):
 
 import_content('sample.csv')
 """
-
-startYear = '2011'
+"""startYear = '2011'
 endYear = '2017'
 _years = []
 for year in range(int(startYear),int(endYear)+1):
     _years.append(year)
 
 print _years
+
+import datetime
+start_date = "04/28/2017"
+end_date = "04/29/2017"
+newStart_Date =  datetime.datetime.strptime(start_date, "%m/%d/%Y").strftime("%Y-%m-%d")
+newEnd_Date =  datetime.datetime.strptime(end_date, "%m/%d/%Y").strftime("%Y-%m-%d")
+
+print newStart_Date, newEnd_Date
+"""
+#obj = RegionData()
+#print obj.getAllRegionInfo()
+# data =  obj.getSingleRegionInfo("San Francisco Bay, CA")
+# print data
+# stationsInfo = data['data']['Stations']
+# stations = []
+# for station in stationsInfo:
+#     stations.append({'station': station['StationName']})
+# print stations
+
+
+# start_date = "04/28/2017"
+# end_date = "04/29/2017"
+# newobj = DataCollectionFromWebService()
+# print newobj.getDatafromWebService("San Francisco Bay, CA",'China Camp',start_date, end_date)
+# result = {}
+# result['qp'] = 'Hina Mohare'
+# qp = result['qp']
+# if len(qp) !=0:
+#     print qp
+
+# client = MongoClient()
+# db = client.test
+# coll = db.processing
+# data = list(coll.find())
+# coll.remove()
+# coll.insert_many()
+
+# result = ""
+#
+# if len(result) == 0:
+#     print "Object is empty"
+# else:
+#     print result
+#
+# result = {}
+# result['Name'] = "sf"
+# result['region'] ="ca"
+#
+# if 'date' not in result :
+#     result['date']="sdfh"
+# print result
+
+obj = RegionData()
+print obj.getAllRegionInfo()

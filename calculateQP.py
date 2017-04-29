@@ -140,6 +140,6 @@ class QPCalculation:
         return self.parameters
 
 # Instantiating the class for testing purpose
-params = QPCalculation()
-p = params.calculate_parameters()
-print p
+# params = QPCalculation()
+# p = params.calculate_parameters()
+# print (p)

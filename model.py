@@ -1,6 +1,20 @@
 from pymongo import MongoClient
 from bson.json_util import dumps
 import json
+
+class DataProcess:
+    def __init__(self):
+        self.client = MongoClient()
+        # Select appropriate database
+        self.db = self.client.qaplatformdb
+        # Select appropriate collection
+        self.coll = self.db.wqprocess
+
+    def getDataFromProcess(self):
+        data = list(self.coll.find())
+        return data
+
+
 class RegionData:
     """
     The stationdata collection stores the regions and the stations information in each region
@@ -44,7 +58,7 @@ class RegionData:
         db = client.qaplatformdb  # getting database
         collection = db.stationdata #getting stationdata collection
         data = collection.find_one({"RegionName":region})
-        if data.count()!= 0:
+        if data!= {}:
             return {'data':data}
         else:
             print ("no record for the given region found in the database")
@@ -78,7 +92,7 @@ class RegionData:
         db = client.qaplatformdb  # getting database
         collection = db.stationdata  # getting stationdata collection
         result = collection.find_one({"RegionName": region})
-        if result.count() != 0:
+        if result != {}:
             stations = result["Stations"]
             for s in stations:
                 if s["StationName"]== station:
@@ -112,9 +126,9 @@ class RegionData:
         db = client.qaplatformdb  # getting database
         collection = db.stationdata #getting stationdata collection
         # inserting document to mongodb
-        result = collection.insert_one(post_data)
+        result = collection.insert(post_data)
         print ("The station information inserted successfully into the stationdata collection")
-        print('One post: {0}'.format(result.inserted_id))
+        #print('One post: {0}'.format(result.inserted_id))
 
 
 # --------------------------------- Querying the validated data sets ------------------------------------------------
@@ -125,27 +139,68 @@ class ValidatedData:
     def __init__(self):
         pass
 
-    def insertValidatedStationData(self, region, station, start_date, end_date,isCleaned,overallQuality, diamension, data, parameters):
+    def insertResult(self, result, data):
+        """       
+        :param result: result = {'Region':region,'Station':station, 'FromDate':start_date, 'EndDate': end_date,\
+                  'IsCleaned':isCleaningRequired,'DefaultQualityParameters': '', 'YearlyQualityParameters':'', 
+                  'MonthlyQualityParameters':''}
+        :return: 
         """
-        This function inserts the validated dataset into the database
-        {'Region':"Padilla Bay, WA", 'Station':"Bayview Channel", 'From':"2017-01-01",
-					'To':"2017-01-01",'IsCleaned': "true", "Diamension": 'Region/Station',OverallQuality':80,'Parameters':{'Completeness':75 , 'Accuracy':75,'Timeliness':75,'Uniqueness':75,'Validity':75,'Consistency':75,
-         Reliability:75, Usability:75}}
-        :param region:
-        :param station:
-        :param start_date:
-        :param end_date:
-        :return:
+        # region = result['Region']
+        # station = result['Station']
+        # start_date = result['FromDate']
+        # end_date = result['EndDate']
+        # isCleaned = result['IsCleaned']
+        # defaultQualityParameters = result['DefaultQualityParameters']
+        # yearlyQualityParameters = result['YearlyQualityParameters']
+        # monthlyQualityParameters = result['MonthlyQualityParameters']
+        # self.insertValidatedStationData(region, station, start_date, end_date, isCleaned,
+        #         defaultQualityParameters, yearlyQualityParameters, monthlyQualityParameters, data)
+
+        result["Data"] = data
+        client = MongoClient()  # setting connection with the mongoclient
+
+        #db = client.test  # test database
+
+        db = client.qaplatformdb  # getting database
+        collection = db.validateddata  # getting validateddata collections
+
+        collection.insert_one(result)
+
+        print ('inserted validated data into the database')
+
+
+
+    def insertValidatedStationData(self, region, station, start_date, end_date, isCleaned,
+                defaultQualityParameters, yearlyQualityParameters, monthlyQualityParameters, data):
+        """
+        result = {'Region':region,'Station':station, 'FromDate':start_date, 'EndDate': end_date,\
+                  'IsCleaned':isCleaningRequired,'DefaultQualityParameters': '', 'YearlyQualityParameters':'', 
+                  'MonthlyQualityParameters':'', "Data":data}
+        :param region: 
+        :param station: 
+        :param start_date: 
+        :param end_date: 
+        :param isCleaned: 
+        :param defaultQualityParameters: 
+        :param yearlyQualityParameters: 
+        :param monthlyQualityParameters: 
+        :param data: 
+        :return: 
         """
         client = MongoClient()  # setting connection with the mongoclient
 
-        db = client.test # test database
+        #db = client.test # test database
 
-        #db = client.qaplatformdb  # getting database
+        db = client.qaplatformdb  # getting database
         collection = db.validateddata #getting validateddata collections
 
-        post_data = {'Region': region, 'Station': station, 'From': start_date,'To': end_date,'IsCleaned': isCleaned,"Diamension":diamension,
-                     'OverallQuality': overallQuality, 'Parameters': parameters, 'Data': data}
+
+        post_data = {'Region': region, 'Station': station, 'FromDate': start_date,'EndDate': end_date,'IsCleaned': isCleaned,
+                     "DefaultQualityParameters": defaultQualityParameters,
+                     'YearlyQualityParameters': yearlyQualityParameters,
+                     'MonthlyQualityParameters': monthlyQualityParameters,
+                     'Data': data}
         result = collection.insert_one(post_data)
 
         print ('inserted validated data into the database')
@@ -159,9 +214,9 @@ class ValidatedData:
                 """
         records = []  # list to store all the records of the stations in a region
         client = MongoClient()  # setting connection with the mongoclient
-        #db = client.qaplatformdb  # getting database
+        db = client.qaplatformdb  # getting database
 
-        db = client.test  # test data collection
+        #db = client.test  # test data collection
 
         collection = db.validateddata  # getting validateddata collections
         result = collection.find({"Region": region}, {"Data": 0})
@@ -191,7 +246,7 @@ class ValidatedData:
 
         #db = client.qaplatformdb  # getting database
         collection = db.validateddata  # getting validateddata collections
-        result = collection.find({"Region": region, "Station": station},{"data":0})
+        result = collection.find({"Region": region, "Station": station},{"Data":0})
 
         if result.count()!= 0:
             print ("validated data for the station is found in the database")
@@ -219,11 +274,11 @@ class ValidatedData:
         records = []
         client = MongoClient()  # setting connection with the mongoclient
 
-        db = client.test  # test data collection
+        #db = client.test  # test data collection
 
-        #db = client.qaplatformdb  # getting database
+        db = client.qaplatformdb  # getting database
         collection = db.validateddata #getting validateddata collection
-        result = collection.find({'$and': [{"Region": region}, {"Station":station}, {"From":start_date}, {"To": end_date}]},{"Data":0})
+        result = collection.find({'$and': [{"Region": region}, {"Station":station}, {"FromDate":start_date}, {"EndDate": end_date}]},{"Data":0})
         if result.count() != 0:
             print ("The record of the station for the given dates is present in the validated database")
             records.append(result)

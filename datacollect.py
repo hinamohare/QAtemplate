@@ -5,6 +5,7 @@ import simplejson
 import json
 import re
 from model import RegionData, RawData, ValidatedData
+import datetime
 
 class DataCollectionFromWebService:
     """
@@ -32,12 +33,13 @@ class DataCollectionFromWebService:
         #date format for getting data from web service = yy/mm/dd
         obj =  RegionData()
         stationcode = obj.getStaionCode(region, station)
-
+        newStart_Date = datetime.datetime.strptime(start_date, "%m/%d/%Y").strftime("%Y-%m-%d")
+        newEnd_Date = datetime.datetime.strptime(end_date, "%m/%d/%Y").strftime("%Y-%m-%d")
 
         server = SOAPpy.SOAPProxy("http://cdmo.baruch.sc.edu/webservices2/requests.cfc?wsdl")
 
         #stationcode="pdbjewq"
-        responsedata =  server.exportAllParamsDateRangeXMLNew(stationcode, start_date, end_date,'*')
+        responsedata =  server.exportAllParamsDateRangeXMLNew(stationcode, newStart_Date, newEnd_Date,'*')
         #responsedata = server.exportAllParamsDateRangeXMLNew('pdbjewq','2014-12-30', '2014-12-31', '*')
 
        # print responsedata
@@ -47,8 +49,9 @@ class DataCollectionFromWebService:
         dataArray =  pythonObject["returnData"]["data"] # returns {  [{...},{....},.....]}
 
         #data from webservice has date format  mm/dd/yy = 12/31/2014
-        print(dataArray)
-        return dataArray
+        #print(dataArray)
+
+        return json.dumps(dataArray)
         """
         print (dataArray)
         self.dataToJson(dataArray, filename) # store the data into a json file
@@ -78,5 +81,6 @@ class DataCollectionFromWebService:
         pass
 
 
-
+# obj = DataCollectionFromWebService()
+# print obj.getDatafromWebService('San Francisco Bay, CA','China Camp', '02/01/2014', '02/01/2014')
 

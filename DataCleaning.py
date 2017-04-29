@@ -15,7 +15,8 @@ class DataCleaning :
         #self.db = self.client.currentTest
         self.db = self.client.qaplatformdb
         self.collection = self.db.wqprocess
-        pass
+        #self.db = self.client.test
+        #self.collection = self.db.processing
 
     def cleanCSVData(self,filename):
         """
@@ -65,5 +66,29 @@ class DataCleaning :
         self.collection.insert_many(df.to_dict('records'))
         #pprint(list(self.collection.find()))
 
-#obj =  DataCleaning()
+    def defaultCleanJSONData(self, jsonList):
+        """
+        take inpput as a json List, clean data and store it into database for further parameter calculation
+        :return: 
+        """
+        df = pd.read_json(jsonList)
+        columnSet = ['Station_Code', 'isSWMP', 'Historical', 'ProvisionalPlus', 'F_Record', 'F_Temp', 'F_SpCond',
+                     'F_Sal', 'F_DO_pct',
+                     'F_DO_mgl', 'F_Depth', 'F_cDepth', 'F_pH', 'F_Turb', 'ChlFluor', 'EC_ChlFluor', 'EC_DO_mgl',
+                     'EC_DO_pct', 'EC_Depth',
+                     'EC_Level', 'EC_Sal', 'EC_SpCond', 'EC_SpCond', 'EC_Temp', 'EC_Turb', 'EC_cDepth', 'EC_cLevel',
+                     'EC_pH', 'F_ChlFluor',
+                     'F_Level', 'F_cLevel', 'F_cLevel', 'ID', 'MarkAsDeleted', 'Vented', '_id', 'cLevel',
+                     'utcStamp']
+        for column in columnSet:
+            if column in df:
+                df.drop(column, axis=1, inplace=True)
+
+        # insert dataframe into mondodb for processing
+        self.collection.remove()
+        self.collection.insert_many(df.to_dict('records'))
+        # pprint(list(self.collection.find()))
+
+
+            #obj =  DataCleaning()
 #obj.cleanCSVData('./data/csv/sample.csv')

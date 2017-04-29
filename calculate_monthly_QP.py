@@ -166,6 +166,6 @@ class MonthlyQPCalculation:
         return self.monthly_parameters
 
 # Instantiating the class for testing purpose
-params = MonthlyQPCalculation()
-p = params.calculate_monthly_parameters()
-print p
+# params = MonthlyQPCalculation()
+# p = params.calculate_monthly_parameters()
+# print p

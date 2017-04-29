@@ -5,10 +5,12 @@ import uuid
 
 from flask import jsonify, request, session, json, redirect, flash
 from flask import Flask, render_template, app
+from pymongo import MongoClient
+
 from model import RegionData, ValidatedData
 from process import FileInputProcess, WebAPIInputProcess
 from werkzeug.utils import secure_filename
-
+from bson.objectid import ObjectId
 
 UPLOAD_FOLDER = './data/csv'
 ALLOWED_EXTENSIONS = set(['csv', 'xls','txt'])
@@ -128,71 +130,82 @@ def getWaterQuality():
          reliability: r, "usability"": us} }
     """
     # return "data received"
+    try:
 
-    input_json = request.get_json(force=True)
-    print(input_json)
-    region = input_json['Region']  # region name
+        input_json = request.get_json(force=True)
+        print(input_json)
+        region = input_json['Region']  # region name
 
-    station = input_json['Station']  # station name
+        station = input_json['Station']  # station name
 
-    start_date = input_json['FromDate']  # start_date format  mm/dd/yy
+        start_date = input_json['FromDate']  # start_date format  mm/dd/yy
 
-    end_date = input_json['ToDate']  # end_date name
+        end_date = input_json['ToDate']  # end_date name
 
-    clean = input_json["IsRequiredClean"]  # true or false
-    if clean == "true":
-        isCleaningRequired = True
-    else :
-        isCleaningRequired = False
+        clean = input_json["IsRequiredClean"]  # true or false
+        if clean == "true":
+            isCleaningRequired = True
+        else :
+            isCleaningRequired = False
 
-    #validationType = input_json['ValidationType'] #modelbased or toolbased
-    #parameters = input_json['Parameters']
-    #parameters {  'Completeness': 'true', 'Timeliness': 'true', 'Correctness': 'true','Validity': 'true',
-     #                       'Uniqueness': 'true','Usability': 'true'}
+        #validationType = input_json['ValidationType'] #modelbased or toolbased
+        #parameters = input_json['Parameters']
+        #parameters {  'Completeness': 'true', 'Timeliness': 'true', 'Correctness': 'true','Validity': 'true',
+         #                       'Uniqueness': 'true','Usability': 'true'}
 
-    monthlyValidation = input_json['MonthlyValidation'] #true/false
-    if monthlyValidation == "true":
-        monthly = True
-        monthStartDate = input_json['MonthStartDate'] #yyyy
-        monthEndDate = input_json['MonthEndDate'] #yyyy
-    else :
-        monthly = False
-        monthStartDate=''
-        monthEndDate =''
+        monthlyValidation = input_json['MonthlyValidation'] #true/false
+        if monthlyValidation == "true":
+            monthly = True
+            monthStartDate = input_json['MonthStartDate'] #yyyy
+            monthEndDate = input_json['MonthEndDate'] #yyyy
+        else :
+            monthly = False
+            monthStartDate=''
+            monthEndDate =''
 
-    yearlyValidation = input_json['YearlyValidation'] #true/false
-    if yearlyValidation == "true":
-        yearly = True
-        startYear = input_json['StartYear'] #yyyy
-        endYear = input_json['EndYear'] #yyyy
-    else :
-        yearly = False
-        startYear=''
-        endYear = ''
-    {'Completeness': 'true', 'Timeliness': 'true', 'Correctness': 'true', 'Validity': 'true',
-     'Uniqueness': 'true', 'Usability': 'true'}
-    parameters = {'Completeness': input_json["Parameters"]["Completeness"],
-                  'Timeliness': input_json["Parameters"]["Timeliness"],
-                  'Correctness': input_json["Parameters"]["Correctness"],
-                  'Validity': input_json["Parameters"]["Validity"],
-                  'Uniqueness': input_json["Parameters"]["Uniqueness"],
-                  'Usability': input_json["Parameters"]["Usability"],
-                  }
+        yearlyValidation = input_json['YearlyValidation'] #true/false
+        if yearlyValidation == "true":
+            yearly = True
+            startYear = input_json['StartYear'] #yyyy
+            endYear = input_json['EndYear'] #yyyy
+        else :
+            yearly = False
+            startYear=''
+            endYear = ''
 
-    source = input_json["Source"]  # WebService or CSV
+        parameters = {'Completeness': input_json["Parameters"]["Completeness"],
+                      'Timeliness': input_json["Parameters"]["Timeliness"],
+                      'Correctness': input_json["Parameters"]["Correctness"],
+                      'Validity': input_json["Parameters"]["Validity"],
+                      'Uniqueness': input_json["Parameters"]["Uniqueness"],
+                      'Usability': input_json["Parameters"]["Usability"],
+                      }
 
-    # if source is user uploaded csv file
-    if source == 'CSV':
-        filename = input_json['CsvFileName'] #read filename
-        fileProcessObj = FileInputProcess();
-        result = fileProcessObj.process(region, station, start_date, end_date, filename,
-                                        isCleaningRequired, parameters, monthly,monthStartDate,monthEndDate, yearly, startYear, endYear);
-        return jsonify(data=result)
+        source = input_json["Source"]  # WebService or CSV
 
-    #source is WebService
-    else :
-        modelBasedSubType = input_json['ModelBasedSubType']  # stationbased or regionbased; only considered for source = WebService
-        pass
+        # if source is user uploaded csv file
+        if source == 'CSV':
+            filename = input_json['CsvFileName'] #read filename
+            fileProcessObj = FileInputProcess();
+            result = fileProcessObj.process(region, station, start_date, end_date, filename,
+                            isCleaningRequired, parameters, monthly,monthStartDate,monthEndDate, yearly, startYear, endYear);
+            return jsonify(data=result)
+
+        #source is WebService
+        else :
+            modelBasedSubType = input_json['ModelBasedSubType']  # Stationbased or regionbased; only considered for source = WebService
+            apiDataProcessObj = WebAPIInputProcess()
+            if modelBasedSubType == "StationBased":
+                result = apiDataProcessObj.processStationBased(region, station, start_date, end_date,
+                            isCleaningRequired, parameters, monthly,monthStartDate,monthEndDate, yearly, startYear, endYear)
+            else:
+                result = apiDataProcessObj.processRegionBAsed(region, start_date, end_date,
+                            isCleaningRequired, parameters, monthly,monthStartDate,monthEndDate, yearly, startYear, endYear)
+
+            return jsonify(data=result)
+
+    except Exception:
+        return "Can't calculate quality parameters for this dataset"
 
 
 
@@ -248,6 +261,15 @@ def upload():
             print (filename)
             return jsonify(result ={"filename": filename})
 
+@app.route('/report/<id>', methods=['GET'])
+def getReportFor():
+
+    client = MongoClient()  # setting connection with the mongoclient
+    db = client.qaplatformdb  # getting database
+    collection = db.validateddata  # getting validateddata collections
+    #collection = db.stationdata
+    result = collection.find({"_id": ObjectId(id)})
+    return jsonify(report=result)
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)  # run app in debug mode

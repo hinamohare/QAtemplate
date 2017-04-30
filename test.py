@@ -1,5 +1,7 @@
 import os
 from pprint import pprint
+
+from bson import ObjectId
 from pymongo import MongoClient
 import json
 #from model import RegionData
@@ -154,5 +156,15 @@ print newStart_Date, newEnd_Date
 #     result['date']="sdfh"
 # print result
 
-obj = RegionData()
-print obj.getAllRegionInfo()
+# obj = RegionData()
+# print obj.getAllRegionInfo()
+
+id = '5903ea8fb61e1217cc3c645d'
+client = MongoClient()  # setting connection with the mongoclient
+db = client.qaplatformdb  # getting database
+#collection = db.validateddata  # getting validateddata collections
+collection = db.stationdata
+cursor = collection.find({'_id': ObjectId(id)})
+
+for document in cursor:
+    print(document)

@@ -262,14 +262,16 @@ def upload():
             return jsonify(result ={"filename": filename})
 
 @app.route('/report/<id>', methods=['GET'])
-def getReportFor():
+def getReportFor(id):
 
     client = MongoClient()  # setting connection with the mongoclient
     db = client.qaplatformdb  # getting database
-    collection = db.validateddata  # getting validateddata collections
-    #collection = db.stationdata
-    result = collection.find({"_id": ObjectId(id)})
-    return jsonify(report=result)
+    #collection = db.validateddata  # getting validateddata collections
+    collection = db.stationdata
+    cursor = collection.find({'_id': ObjectId(str(id))})
+    for document in cursor:
+        result = document
+    return jsonify(report= json.loads(dumps(result)))
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)  # run app in debug mode

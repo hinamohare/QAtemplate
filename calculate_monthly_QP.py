@@ -89,7 +89,7 @@ class MonthlyQPCalculation:
         correctness = 80.0
         return correctness
 
-    def calculate_monthly_parameters(self, params):
+    def calculate_monthly_parameters(self, _years, params):
         """
         Call this function to get quality parameters on a monthly basis
         :return: dictionary of dictionaries self.monthly_parameters
@@ -106,64 +106,68 @@ class MonthlyQPCalculation:
          Usability': {'Mar': '75.96', 'Feb': '75.96', 'Aug': '75.98', 'Sep': '75.94', 'Apr': '75.99', 'Jun': '75.96', 
          'Jul': '76.00', 'Jan': '59.25', 'May': '75.89', 'Nov': '76.00', 'Dec': '75.98', 'Oct': '76.00'}}
         """
-        if params['Usability'] == "true":
-            params['Completeness'] = 'true'
-            params['Correctness'] = 'true'
-            params['Timeliness'] = 'true'
+        try:
+            print("monthly qp calculation function called")
+            if params['Usability'] == "true" or params['Usability'] == True :
+                params['Completeness'] = 'true'
+                params['Correctness'] = 'true'
+                params['Timeliness'] = 'true'
 
-        month = 0
-        month_mapping ={1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun", 7: "Jul", 8: "Aug", 9: "Sep", 10: "Oct", 11:"Nov", 12: "Dec"}
-        months = ["^01/", "^02/", "^03/", "^04/", "^05/", "^06/", "^07/", "^08/", "^09/", "^10/", "^11/", "^12/"]
-        for _ in months:
-            month += 1
-            month_key = month_mapping[month]
-            #print _
-            self.coll.aggregate([{"$match": {"DateTimeStamp": {"$regex": _}}}, {"$out": "temp_coll"}])
+            month = 0
+            month_mapping ={1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun", 7: "Jul", 8: "Aug", 9: "Sep", 10: "Oct", 11:"Nov", 12: "Dec"}
+            months = ["^01/", "^02/", "^03/", "^04/", "^05/", "^06/", "^07/", "^08/", "^09/", "^10/", "^11/", "^12/"]
+            for _ in months:
+                month += 1
+                month_key = month_mapping[month]
+                #print _
+                self.coll.aggregate([{"$match": {"DateTimeStamp": {"$regex": _}}}, {"$out": "temp_coll"}])
 
-            self.coll = self.db.temp_coll
+                self.coll = self.db.temp_coll
 
-            temp_total_docs = self.coll.find().count()
-            #print temp_total_docs
-            temp_total_fields = temp_total_docs * self.count
-            #print temp_total_fields
-            if params['Completeness'] == 'true':
-                completeness = self.get_completeness(temp_total_fields)
-                self.monthly_parameters["Completeness"][month_key] = "{0:.2f}".format(completeness)
-            else:
-                self.monthly_parameters["Completeness"]= {}
+                temp_total_docs = self.coll.find().count()
+                #print temp_total_docs
+                temp_total_fields = temp_total_docs * self.count
+                #print temp_total_fields
+                if params['Completeness'] == 'true' or params['Completeness'] == True:
+                    completeness = self.get_completeness(temp_total_fields)
+                    self.monthly_parameters["Completeness"][month_key] = "{0:.2f}".format(completeness)
+                else:
+                    self.monthly_parameters["Completeness"]= {}
 
-            if params['Uniqueness'] == 'true':
-                uniqueness = self.get_uniqueness(temp_total_docs)
-                self.monthly_parameters["Uniqueness"][month_key] = "{0:.2f}".format(uniqueness)
-            else:
-                self.monthly_parameters["Uniqueness"]= {}
+                if params['Uniqueness'] == 'true':
+                    uniqueness = self.get_uniqueness(temp_total_docs)
+                    self.monthly_parameters["Uniqueness"][month_key] = "{0:.2f}".format(uniqueness)
+                else:
+                    self.monthly_parameters["Uniqueness"]= {}
 
-            if params['Validity'] == 'true':
-                validity = self.get_validity(temp_total_fields)
-                self.monthly_parameters["Validity"][month_key] = "{0:.2f}".format(validity)
-            else:
-                self.monthly_parameters["Validity"]= {}
+                if params['Validity'] == 'true' or params['Validity'] == True:
+                    validity = self.get_validity(temp_total_fields)
+                    self.monthly_parameters["Validity"][month_key] = "{0:.2f}".format(validity)
+                else:
+                    self.monthly_parameters["Validity"]= {}
 
-            if params['Timeliness'] == 'true':
-                timeliness = self.get_timeliness()
-                self.monthly_parameters["Timeliness"][month_key] = "{0:.2f}".format(timeliness)
-            else:
-                self.monthly_parameters["Timeliness"]= {}
+                if params['Timeliness'] == 'true' or params['Timeliness'] == True:
+                    timeliness = self.get_timeliness()
+                    self.monthly_parameters["Timeliness"][month_key] = "{0:.2f}".format(timeliness)
+                else:
+                    self.monthly_parameters["Timeliness"]= {}
 
-            if params['Correctness'] == 'true':
-                correctness = self.get_correctness()
-                self.monthly_parameters["Correctness"][month_key] = "{0:.2f}".format(correctness)
-            else:
-                self.monthly_parameters["Correctness"]= {}
+                if params['Correctness'] == 'true' or params['Correctness'] == True:
+                    correctness = self.get_correctness()
+                    self.monthly_parameters["Correctness"][month_key] = "{0:.2f}".format(correctness)
+                else:
+                    self.monthly_parameters["Correctness"]= {}
 
-            if params['Usability'] == 'true' :
-                usability = completeness * correctness * timeliness/10000.0
-                self.monthly_parameters["Usability"][month_key] = "{0:.2f}".format(usability)
-            else:
-                self.monthly_parameters["Usability"]= {}
+                if params['Usability'] == 'true' or params['Usability'] == True :
+                    usability = completeness * correctness * timeliness/10000.0
+                    self.monthly_parameters["Usability"][month_key] = "{0:.2f}".format(usability)
+                else:
+                    self.monthly_parameters["Usability"]= {}
 
-            self.coll = self.db.wqprocess
-        return self.monthly_parameters
+                self.coll = self.db.wqprocess
+            return self.monthly_parameters
+        except Exception:
+            return 0
 
 # Instantiating the class for testing purpose
 # params = MonthlyQPCalculation()

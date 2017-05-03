@@ -93,51 +93,65 @@ class QPCalculation:
         {'Overall Data Quality': '91.22', 'Completeness': '98.05', 'Timeliness': '95.00', 
         'Correctness': '80.00', 'Validity': '100.00', 'Uniqueness': '99.73', 'Usability': '74.52'}
         """
-        if params['Usability'] == "true":
-            params['Completeness'] = 'true'
-            params['Correctness'] = 'true'
-            params['Timeliness'] = 'true'
+        try:
+            print(" calculate default parameters called ")
+            if params['Usability'] == "true" or params['Usability'] == True:
+                params['Completeness'] = 'true'
+                params['Correctness'] = 'true'
+                params['Timeliness'] = 'true'
 
-        if params['Completeness'] == 'true':
-            completeness = self.get_completeness()
-            self.parameters["Completeness"] = "{0:.2f}".format(completeness)
-        else :
-            self.parameters["Completeness"] = 0
+            if params['Completeness'] == 'true' or params['Completeness'] == True:
+                print(" calculate default Completeness")
+                completeness = self.get_completeness()
+                self.parameters["Completeness"] = "{0:.2f}".format(completeness)
+            else :
+                self.parameters["Completeness"] = 0
 
-        if params['Uniqueness'] == 'true':
-            uniqueness = self.get_uniqueness()
-            self.parameters["Uniqueness"] = "{0:.2f}".format(uniqueness)
-        else :
-            self.parameters["Uniqueness"] = 0
+            if params['Uniqueness'] == 'true' or params['Uniqueness'] == True:
+                print(" calculate default Uniqueness ")
+                uniqueness = self.get_uniqueness()
+                self.parameters["Uniqueness"] = "{0:.2f}".format(uniqueness)
+            else :
+                self.parameters["Uniqueness"] = 0
 
-        if params['Validity'] == 'true':
-            validity = self.get_validity()
-            self.parameters["Validity"] = "{0:.2f}".format(validity)
-        else :
-            self.parameters["Validity"] = 0
+            if params['Validity'] == 'true' or params['Validity'] == True:
+                print(" calculate default Validity")
+                validity = self.get_validity()
+                self.parameters["Validity"] = "{0:.2f}".format(validity)
+            else :
+                self.parameters["Validity"] = 0
 
-        if params['Timeliness'] == 'true':
-            timeliness = self.get_timeliness()
-            self.parameters["Timeliness"] = "{0:.2f}".format(timeliness)
-        else :
-            self.parameters["Timeliness"] = 0
+            if params['Timeliness'] == 'true' or params['Timeliness'] == True:
+                print(" calculate default Timeliness ")
+                timeliness = self.get_timeliness()
+                self.parameters["Timeliness"] = "{0:.2f}".format(timeliness)
+            else :
+                self.parameters["Timeliness"] = 0
 
-        if params['Correctness'] == 'true':
-            correctness = self.get_correctness()
-            self.parameters["Correctness"] = "{0:.2f}".format(correctness)
-        else :
-            self.parameters["Correctness"] = 0
+            if params['Correctness'] == 'true' or params['Correctness'] == True:
+                print(" calculate default correctness ")
+                correctness = self.get_correctness()
+                self.parameters["Correctness"] = "{0:.2f}".format(correctness)
+            else :
+                self.parameters["Correctness"] = 0
 
-        if params['Usability'] == 'true':
-            usability = completeness*timeliness*correctness/10000.0
-            self.parameters["Usability"] = "{0:.2f}".format(usability)
-        else :
-            self.parameters["Usability"] = 0
+            if params['Usability'] == 'true' or params['Usability'] == True:
+                print(" calculate default usability ")
+                usability = completeness*timeliness*correctness/10000.0
+                self.parameters["Usability"] = "{0:.2f}".format(usability)
+            else :
+                self.parameters["Usability"] = 0
 
-        overall_data_quality = (completeness+uniqueness+validity+timeliness+correctness+usability)/6.0
-        self.parameters["Overall Data Quality"] = "{0:.2f}".format(overall_data_quality)
+            print("Calculating default overall quality ")
+            overall_data_quality = (completeness+uniqueness+validity+timeliness+correctness+usability)/6.0
+            self.parameters["Overall Data Quality"] = "{0:.2f}".format(overall_data_quality)
 
-        return self.parameters
+            print (self.parameters)
+            return self.parameters
+
+        except Exception:
+            print("Exception occured while calculating default parameters")
+            return 0
 
 # Instantiating the class for testing purpose
 # params = QPCalculation()

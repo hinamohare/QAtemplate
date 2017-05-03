@@ -43,6 +43,7 @@ class DataCleaning :
         #insert dataframe into mondodb for processing
         self.collection.remove()
         self.collection.insert_many(df.to_dict('records'))
+        print("cleaned csv data")
         #pprint(list(self.collection.find()))
 
     def cleanJSONData(self, jsonList):
@@ -65,6 +66,7 @@ class DataCleaning :
         self.collection.remove()
         self.collection.insert_many(df.to_dict('records'))
         #pprint(list(self.collection.find()))
+        print("cleaned json data from web service")
 
     def defaultCleanJSONData(self, jsonList):
         """
@@ -87,8 +89,9 @@ class DataCleaning :
         # insert dataframe into mondodb for processing
         self.collection.remove()
         self.collection.insert_many(df.to_dict('records'))
+        print("default cleaned json data from web service")
         # pprint(list(self.collection.find()))
 
 
-            #obj =  DataCleaning()
+#obj =  DataCleaning()
 #obj.cleanCSVData('./data/csv/sample.csv')

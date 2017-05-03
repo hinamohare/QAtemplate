@@ -48,6 +48,23 @@ class RegionData:
             print ("no records found in the database")
             return None
 
+    def getAllStationInfo(self):
+        stations = []
+        client = MongoClient()  # setting connection with the mongoclient
+        db = client.qaplatformdb  # getting database
+        collection = db.stationdata  # getting stationdata collection
+        data = collection.find()
+        if data.count() != 0:
+            for item in data:
+                for station in item["Stations"]:
+                    stations.append(station)
+                # print item
+            return stations
+        else:
+            print ("no records found in the database")
+            return None
+
+
     def getSingleRegionInfo(self, region):
         """
         This function reads the record for one region from the collection "stationdata"
@@ -156,8 +173,10 @@ class ValidatedData:
         # monthlyQualityParameters = result['MonthlyQualityParameters']
         # self.insertValidatedStationData(region, station, start_date, end_date, isCleaned,
         #         defaultQualityParameters, yearlyQualityParameters, monthlyQualityParameters, data)
+        newresult = dict(result.items())
 
-        result["Data"] = data
+
+        newresult["Data"] = data
         client = MongoClient()  # setting connection with the mongoclient
 
         #db = client.test  # test database
@@ -165,7 +184,7 @@ class ValidatedData:
         db = client.qaplatformdb  # getting database
         collection = db.validateddata  # getting validateddata collections
 
-        collection.insert_one(result)
+        collection.insert_one(newresult)
 
         print ('inserted validated data into the database')
 
@@ -226,6 +245,8 @@ class ValidatedData:
             print ("validated data for the region is found in the database")
             for record in result:
                 records.append(record)
+
+            #print records
             return records
         else:
             print ("raw data for the region is not found in the database")
@@ -242,9 +263,9 @@ class ValidatedData:
         records =[] # list to store all the records of the stations in a region
         client = MongoClient()  # setting connection with the mongoclient
 
-        db = client.test  # test data collection
+        #db = client.test  # test data collection
 
-        #db = client.qaplatformdb  # getting database
+        db = client.qaplatformdb  # getting database
         collection = db.validateddata  # getting validateddata collections
         result = collection.find({"Region": region, "Station": station},{"Data":0})
 
@@ -252,6 +273,7 @@ class ValidatedData:
             print ("validated data for the station is found in the database")
             for record in result:
                 records.append(record)
+            #print records
             return records
         else:
             print ("raw data for the station is not found in the database")
@@ -281,7 +303,9 @@ class ValidatedData:
         result = collection.find({'$and': [{"Region": region}, {"Station":station}, {"FromDate":start_date}, {"EndDate": end_date}]},{"Data":0})
         if result.count() != 0:
             print ("The record of the station for the given dates is present in the validated database")
-            records.append(result)
+            for record in result:
+                records.append(record)
+            #print records
             return records
         else:
             print ("The record of the station is not present in the validated database")

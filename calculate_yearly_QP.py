@@ -99,60 +99,64 @@ class YearlyQPCalculation:
         'Correctness': {2016: '80.00', 2017: '80.00'}, 'Validity': {2016: '100.00', 2017: '0.00'}, 
         'Uniqueness': {2016: '99.73', 2017: '0.00'}, 'Usability': {2016: '74.52', 2017: '0.00'}}
         """
-        if params['Usability'] == "true":
-            params['Completeness'] = 'true'
-            params['Correctness'] = 'true'
-            params['Timeliness'] = 'true'
-        years = _years
-        for year in years:
-            pattern = "/" + str(year) + " "
-            #print pattern
-            self.coll.aggregate([{"$match": {"DateTimeStamp": {"$regex": pattern}}}, {"$out": "temp_coll"}])
+        try:
+            print("yearly qp calculating function called")
+            if params['Usability'] == "true" or params['Usability'] == True:
+                params['Completeness'] = 'true'
+                params['Correctness'] = 'true'
+                params['Timeliness'] = 'true'
+            years = _years
+            for year in years:
+                pattern = "/" + str(year) + " "
+                #print pattern
+                self.coll.aggregate([{"$match": {"DateTimeStamp": {"$regex": pattern}}}, {"$out": "temp_coll"}])
 
-            self.coll = self.db.temp_coll
-            # print temp_total_docs
-            temp_total_docs = self.coll.find().count()
-            # print temp_total_fields
-            temp_total_fields = temp_total_docs * self.count
+                self.coll = self.db.temp_coll
+                # print temp_total_docs
+                temp_total_docs = self.coll.find().count()
+                # print temp_total_fields
+                temp_total_fields = temp_total_docs * self.count
 
-            if params['Completeness'] == 'true':
-                completeness = self.get_completeness(temp_total_fields)
-                self.monthly_parameters["Completeness"][year] = "{0:.2f}".format(completeness)
-            else :
-                self.monthly_parameters["Completeness"] = {}
+                if params['Completeness'] == 'true' or params['Completeness'] == True:
+                    completeness = self.get_completeness(temp_total_fields)
+                    self.monthly_parameters["Completeness"][year] = "{0:.2f}".format(completeness)
+                else :
+                    self.monthly_parameters["Completeness"] = {}
 
-            if params['Uniqueness'] == 'true':
-                uniqueness = self.get_uniqueness(temp_total_docs)
-                self.monthly_parameters["Uniqueness"][year] = "{0:.2f}".format(uniqueness)
-            else:
-                self.monthly_parameters["Uniqueness"] = {}
+                if params['Uniqueness'] == 'true' or params['Uniqueness'] == True:
+                    uniqueness = self.get_uniqueness(temp_total_docs)
+                    self.monthly_parameters["Uniqueness"][year] = "{0:.2f}".format(uniqueness)
+                else:
+                    self.monthly_parameters["Uniqueness"] = {}
 
-            if params['Validity'] == 'true':
-                validity = self.get_validity(temp_total_fields)
-                self.monthly_parameters["Validity"][year] = "{0:.2f}".format(validity)
-            else:
-                self.monthly_parameters["Validity"] = {}
+                if params['Validity'] == 'true' or params['Validity'] == True:
+                    validity = self.get_validity(temp_total_fields)
+                    self.monthly_parameters["Validity"][year] = "{0:.2f}".format(validity)
+                else:
+                    self.monthly_parameters["Validity"] = {}
 
-            if params['Timeliness'] == 'true':
-                timeliness = self.get_timeliness()
-                self.monthly_parameters["Timeliness"][year] = "{0:.2f}".format(timeliness)
-            else:
-                self.monthly_parameters["Timeliness"] = {}
+                if params['Timeliness'] == 'true' or params['Timeliness'] == True:
+                    timeliness = self.get_timeliness()
+                    self.monthly_parameters["Timeliness"][year] = "{0:.2f}".format(timeliness)
+                else:
+                    self.monthly_parameters["Timeliness"] = {}
 
-            if params['Correctness'] == 'true':
-                correctness = self.get_correctness()
-                self.monthly_parameters["Correctness"][year] = "{0:.2f}".format(correctness)
-            else:
-                self.monthly_parameters["Correctness"] = {}
+                if params['Correctness'] == 'true' or params['Correctness'] == True:
+                    correctness = self.get_correctness()
+                    self.monthly_parameters["Correctness"][year] = "{0:.2f}".format(correctness)
+                else:
+                    self.monthly_parameters["Correctness"] = {}
 
-            if params['Correctness'] == 'true':
-                usability = completeness * timeliness * correctness/10000.0
-                self.monthly_parameters["Usability"][year] = "{0:.2f}".format(usability)
-            else:
-                self.monthly_parameters["Usability"] = {}
+                if params['Correctness'] == 'true' or params['Correctness'] == True:
+                    usability = completeness * timeliness * correctness/10000.0
+                    self.monthly_parameters["Usability"][year] = "{0:.2f}".format(usability)
+                else:
+                    self.monthly_parameters["Usability"] = {}
 
-            self.coll = self.db.wqprocess
-        return self.monthly_parameters
+                self.coll = self.db.wqprocess
+            return self.monthly_parameters
+        except Exception:
+            return 0
 
 # Instantiating the class for testing purpose
 # params = YearlyQPCalculation()

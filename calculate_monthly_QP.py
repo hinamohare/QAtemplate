@@ -19,8 +19,8 @@ class MonthlyQPCalculation:
             # print key
             self.count += 1  # Keep track of total number of keys/columns
         # print self.count
-        self.monthly_parameters = {"Completeness": {}, "Uniqueness": {}, "Validity": {}, "Timeliness": {},
-                                   "Correctness": {}, "Usability": {}}
+        self.monthly_parameters = {"Completeness": [], "Uniqueness": [], "Validity": [], "Timeliness": [],
+                                   "Correctness": [], "Usability": []}
 
     def get_completeness(self, temp_total_fields):
         total_null = 0
@@ -159,49 +159,63 @@ class MonthlyQPCalculation:
                     if params['Completeness'] == 'true' :
                         #print ("calculating Completeness")
                         completeness = self.get_completeness(temp_total_fields)
-                        self.monthly_parameters["Completeness"][key] = "{0:.2f}".format(completeness)
+                        #self.monthly_parameters["Completeness"][key] = "{0:.2f}".format(completeness)
+                        self.monthly_parameters["Completeness"].append("{0:.2f}".format(completeness))
                     else:
                         completeness = 0
-                        self.monthly_parameters["Completeness"] = {}
+                        self.monthly_parameters["Completeness"] = []
 
                     if params['Uniqueness'] == 'true' :
                         #print ("calculating uniqueness")
                         uniqueness = self.get_uniqueness(temp_total_docs)
-                        self.monthly_parameters["Uniqueness"][key] = "{0:.2f}".format(uniqueness)
+                        #self.monthly_parameters["Uniqueness"][key] = "{0:.2f}".format(uniqueness)
+                        self.monthly_parameters["Uniqueness"].append("{0:.2f}".format(uniqueness))
                     else:
                         uniqueness = 0
-                        self.monthly_parameters["Uniqueness"] = {}
+                        self.monthly_parameters["Uniqueness"] = []
 
                     if params['Validity'] == 'true' :
                         #print ("calculating validity")
                         validity = self.get_validity(temp_total_fields)
-                        self.monthly_parameters["Validity"][key] = "{0:.2f}".format(validity)
+                        #self.monthly_parameters["Validity"][key] = "{0:.2f}".format(validity)
+                        self.monthly_parameters["Validity"].append("{0:.2f}".format(validity))
                     else:
                         validity = 0
-                        self.monthly_parameters["Validity"] = {}
+                        self.monthly_parameters["Validity"] = []
 
                     if params['Timeliness'] == 'true':
                         #print ("calculating timeliness")
+                        if month == 1 or 3 or 5 or 7 or 8 or 10 or 12:
+                            days = 31
+                        elif month == 2 or 4 or 6 or 9 or 11:
+                            days = 30
+                        elif month == 2 and (year % 4) == 0:
+                            days = 29
+                        else:
+                            days = 28
                         timeliness = self.get_timeliness(days)
-                        self.monthly_parameters["Timeliness"][key] = "{0:.2f}".format(timeliness)
+                        #self.monthly_parameters["Timeliness"][key] = "{0:.2f}".format(timeliness)
+                        self.monthly_parameters["Timeliness"].append("{0:.2f}".format(timeliness))
                     else:
                         timeliness = 0
-                        self.monthly_parameters["Timeliness"] = {}
+                        self.monthly_parameters["Timeliness"] = []
 
                     if params['Correctness'] == 'true' :
                         #print ("calculating correctness")
                         correctness = self.get_correctness(temp_total_fields)
-                        self.monthly_parameters["Correctness"][key] = "{0:.2f}".format(correctness)
+                        #self.monthly_parameters["Correctness"][key] = "{0:.2f}".format(correctness)
+                        self.monthly_parameters["Correctness"].append("{0:.2f}".format(correctness))
                     else:
                         correctness = 0
-                        self.monthly_parameters["Correctness"] = {}
+                        self.monthly_parameters["Correctness"] = []
 
                     if params['Usability'] == 'true':
                         #print ("calculating usability")
                         usability = completeness * correctness * timeliness / 10000.0
-                        self.monthly_parameters["Usability"][key] = "{0:.2f}".format(usability)
+                        #self.monthly_parameters["Usability"][key] = "{0:.2f}".format(usability)
+                        self.monthly_parameters["Usability"].append("{0:.2f}".format(usability))
                     else:
-                        self.monthly_parameters["Usability"] = {}
+                        self.monthly_parameters["Usability"] = []
 
                     self.coll = self.db.temp_year_coll
                 self.coll = self.db.wqprocess

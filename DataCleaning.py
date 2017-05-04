@@ -25,6 +25,10 @@ class DataCleaning :
         :return: 
         """
         # set DateTimeStamp as index for the table
+        print("filename ",filename)
+        filename = './data/csv/'+filename
+        print("cleaning function for csv file called")
+
         df = pd.read_csv(filename,encoding='latin1')
         # remove columns
         columnSet = ['Station_Code', 'isSWMP', 'Historical', 'ProvisionalPlus', 'F_Record', 'F_Temp', 'F_SpCond',
@@ -41,7 +45,9 @@ class DataCleaning :
         #remove duplicate rows
         df.drop_duplicates(keep='first')
         #insert dataframe into mondodb for processing
+
         self.collection.remove()
+        print("inserting cleaned dataframe into mongodb wqprocess collection")
         self.collection.insert_many(df.to_dict('records'))
         print("cleaned csv data")
         #pprint(list(self.collection.find()))

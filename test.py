@@ -1,16 +1,16 @@
-import os
-from pprint import pprint
-
-from bson import ObjectId
-from pymongo import MongoClient
-import json
-#from model import RegionData
-import SOAPpy
-import pandas as pd
-import pymongo
-from DataCleaning import DataCleaning
-from model import RegionData
-#from datacollect import DataCollectionFromWebService
+# import os
+# from pprint import pprint
+#
+# from bson import ObjectId
+# from pymongo import MongoClient
+# import json
+# #from model import RegionData
+# import SOAPpy
+# import pandas as pd
+# import pymongo
+# from DataCleaning import DataCleaning
+# from model import RegionData
+# #from datacollect import DataCollectionFromWebService
 """
 data = {'region':"Padilla Bay, WA", 'stations':[
                     {'station':"Bayview Channel", 'code': "pdbbywq", 'lat':"48.496139",'lng':"122.502114"},
@@ -159,12 +159,35 @@ print newStart_Date, newEnd_Date
 # obj = RegionData()
 # print obj.getAllRegionInfo()
 
-id = '5903ea8fb61e1217cc3c645d'
-client = MongoClient()  # setting connection with the mongoclient
-db = client.qaplatformdb  # getting database
-#collection = db.validateddata  # getting validateddata collections
-collection = db.stationdata
-cursor = collection.find({'_id': ObjectId(id)})
+# id = '5903ea8fb61e1217cc3c645d'
+# client = MongoClient()  # setting connection with the mongoclient
+# db = client.qaplatformdb  # getting database
+# #collection = db.validateddata  # getting validateddata collections
+# collection = db.stationdata
+# cursor = collection.find({'_id': ObjectId(id)})
+#
+# for document in cursor:
+#     print(document)
 
-for document in cursor:
-    print(document)
+
+# result = {}
+# result ["firstname"] = "hina"
+# result ["lastname"] ="mohare"
+# result ["city" ] ="nagpur"
+#
+# data = "india"
+#
+# newresult = dict(result.items())
+# newresult["country"] = data
+#
+# print newresult
+# print result
+monthlabel =[]
+years = [2017, 218]
+month = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+for y in years:
+    for m in month:
+        monthlabel.append(m+str(y))
+
+print monthlabel
+

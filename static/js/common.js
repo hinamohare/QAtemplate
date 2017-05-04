@@ -14,10 +14,10 @@ qap.regions = {};
         DiSourceValue: ko.observable("WebService"),
         ShowCsvSource: ko.observable('false'),
         ShowWsSource: ko.observable('true'),
-        IsRequiredClean: ko.observable('true'),
+        IsRequiredClean: ko.observable('false'),
         CsvFileName:ko.observable('Somecsv.csv'),
         Completeness:ko.observable('true'),
-        Accuracy:ko.observable('true'),
+        Correctness:ko.observable('true'),
         Timeliness:ko.observable('true'),
         Uniqueness:ko.observable('true'),
         Validity:ko.observable('true'),
@@ -29,6 +29,12 @@ qap.regions = {};
         ValidationType : ko.observable('ModelBased'),
         ModelBasedSubType : ko.observable('StationBased'),
         IsModelBased:ko.observable('true'),
+        MonthlyValidation:ko.observable(false),
+        MonthStartDate:ko.observable(),
+        MonthEndDate:ko.observable(),
+        YearlyValidation:ko.observable(false),
+        StartYear:ko.observable(),
+        EndYear:ko.observable(),
         validationTypeClick:function () {
             var self = this;
             self.IsModelBased('false');
@@ -44,11 +50,18 @@ viewModel.DataInputModel = {
     Station: "SomeStation",
     FromDate: "12/11/2009",
     ToDate: "12/11/2009",
-    IsRequiredClean: true,
-    Parameters: {Completeness:true,Accuracy:true,Timeliness:true,Uniqueness:true,Validity:true,Consistency:true,Reliability:true,Usability:true,Availability:true},
+    IsRequiredClean: false,
+    Parameters: {Completeness:true,Correctness:true,Timeliness:true,Uniqueness:true,Validity:true,Consistency:true,Reliability:true,Usability:true,Availability:true},
     Model: "TestModel",
     ValidationType: "ToolBased",
-    ModelBasedSubType: "RegionBased"
+    ModelBasedSubType: "RegionBased",
+    MonthlyValidation:false,
+    MonthStartDate:"2009",
+    MonthEndDate:"2009",
+    YearlyValidation:false,
+    StartYear:"2009",
+    EndYear :"2009"
+
 };
 
 
@@ -106,7 +119,7 @@ qap = {
                     }
                 });
             }
-        ,submitdatainput: function (inputdata) {
+        ,submitdatainput: function (inputdata,successCallback) {
             var jsonString = JSON.stringify(inputdata);
             $.ajax({
                 type: "POST",
@@ -116,7 +129,7 @@ qap = {
                 success: function (msg) {
                     if (msg) {
                         //alert("Submitted");
-
+                            successCallback();
                     } else {
                         alert("Cannot add to list !");
                     }
@@ -164,7 +177,7 @@ qap = {
             'Region': "Padilla Bay, WA", Dimension: 'Region', 'Station': "Bayview Channel", 'From': "2017-01-01",
             'To': "2017-01-01", 'IsCleaned': "true", 'OverallQuality': 80, 'Parameters': {
                 'Completeness': 45,
-                'Accuracy': 98,
+                'Correctness': 98,
                 'Timeliness': 89,
                 'Uniqueness': 23,
                 'Validity': 75,
@@ -177,7 +190,7 @@ qap = {
                 'Region': "Padilla Bay, WA", Dimension: 'Station', 'Station': "Ploeg Channel", 'From': "2017-01-01",
                 'To': "2017-01-01", 'IsCleaned': "true", 'OverallQuality': 80, 'Parameters': {
                 'Completeness': 34,
-                'Accuracy': 56,
+                'Correctness': 56,
                 'Timeliness': 76,
                 'Uniqueness': 7,
                 'Validity': 75,
@@ -190,7 +203,7 @@ qap = {
                 'Region': "Padilla Bay, WA", Dimension: 'Region', 'Station': "Joe Leary Estuary", 'From': "2017-01-01",
                 'To': "2017-01-01", 'IsCleaned': "true", 'OverallQuality': 80, 'Parameters': {
                 'Completeness': 54,
-                'Accuracy': 34,
+                'Correctness': 34,
                 'Timeliness': 23,
                 'Uniqueness': 75,
                 'Validity': 75,
@@ -203,7 +216,7 @@ qap = {
                 'Region': "Padilla Bay, WA", Dimension: 'Station', 'Station': "Bayview Channel", 'From': "2017-01-01",
                 'To': "2017-01-01", 'IsCleaned': "true", 'OverallQuality': 80, 'Parameters': {
                 'Completeness': 76,
-                'Accuracy': 12,
+                'Correctness': 12,
                 'Timeliness': 12,
                 'Uniqueness': 58,
                 'Validity': 75,
@@ -216,7 +229,7 @@ qap = {
                 'Region': "Padilla Bay, WA", Dimension: 'Region', 'Station': "Bayview Channel", 'From': "2017-01-01",
                 'To': "2017-01-01", 'IsCleaned': "true", 'OverallQuality': 80, 'Parameters': {
                 'Completeness': 34,
-                'Accuracy': 65,
+                'Correctness': 65,
                 'Timeliness': 32,
                 'Uniqueness': 54,
                 'Validity': 23,
@@ -232,7 +245,7 @@ qap = {
     getResultByStation: function () {
         var DashBoard = new Object();
         DashBoard.Completeness = 20;
-        DashBoard.Accuracy = 30;
+        DashBoard.Correctness = 30;
         DashBoard.Timeliness = 50;
         DashBoard.Uniqueness = 70;
         DashBoard.Validity = 50;
@@ -247,7 +260,7 @@ qap = {
         var DashBoard = new Object()
         DashBoard.StationCode = "elksmwq";
         DashBoard.Completeness = 20;
-        DashBoard.Accuracy = 30;
+        DashBoard.Correctness = 30;
         DashBoard.Timeliness = 50;
         DashBoard.Uniqueness = 70;
         DashBoard.Validity = 50;
@@ -259,7 +272,7 @@ qap = {
         var DashBoard = new Object()
         DashBoard.StationCode = "elksmwq";
         DashBoard.Completeness = 56;
-        DashBoard.Accuracy = 76;
+        DashBoard.Correctness = 76;
         DashBoard.Timeliness = 43;
         DashBoard.Uniqueness = 24;
         DashBoard.Validity = 50;

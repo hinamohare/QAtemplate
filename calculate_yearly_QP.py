@@ -14,6 +14,8 @@ class YearlyQPCalculation:
 
         # Iterate over keys pulled from first document
         self.count = 0
+        self.incomplete = 0
+        self.invalid = 0
         for key in self.doc:
             # print key
             self.count += 1  # Keep track of total number of keys/columns
@@ -25,6 +27,7 @@ class YearlyQPCalculation:
         # Iterate over keys pulled from first document to find all null values
         for key in self.doc:
             total_null = total_null + self.coll.count({key: ""})
+            self.incomplete = total_null
         if temp_total_fields:
             completeness = ((temp_total_fields - total_null) * 100.0) / temp_total_fields
         else:
@@ -74,25 +77,33 @@ class YearlyQPCalculation:
                 invalid = invalid + self.coll.find({key: {'$ne': "", '$lt': 0, '$gt': 14}}).count()
             if key == "Turb":
                 invalid = invalid + self.coll.find({key: {'$ne': "", '$lt': 0, '$gt': 4000}}).count()
-
+            self.invalid = invalid
             if temp_total_fields:
                 validity = (temp_total_fields - invalid) * 100.0 / temp_total_fields
             else:
                 validity = 0.0
             return validity
 
-    def get_timeliness(self):
-        timeliness = 95.0
+    def get_timeliness(self, days):
+        distinct = self.coll.distinct("DateTimeStamp", {"DateTimeStamp": {"$ne": ""}})
+        timely = len(distinct)
+        timeliness = timely * 100.0 / (96.0 * days)
         return timeliness
 
-    def get_correctness(self):
-        correctness = 80.0
+    def get_correctness(self, temp_total_fields):
+        incorrect = self.incomplete + self.invalid
+        if temp_total_fields:
+            correctness = (temp_total_fields - incorrect) * 100.0 / temp_total_fields
+        else:
+            correctness = 0.0
         return correctness
 
-    def calculate_yearly_parameters(self, _years, params):
+    def calculate_yearly_parameters(self, years, params, days):
         """
         Call this function to get quality parameters on a yearly basis
-        :param _years: List of years for which data quality parameters are to be calculated.
+        :param days: Duration of the data set in days
+        :param params: dictionary indicating which quality parameters are to be calculated
+        :param years: List of years for which data quality parameters are to be calculated.
         for e.g. years = [2016, 2017]
         :return: Dictionary of dictionaries
         for e.g. {'Completeness': {2016: '98.05', 2017: '0.00'}, 'Timeliness': {2016: '95.00', 2017: '95.00'}, 
@@ -100,19 +111,24 @@ class YearlyQPCalculation:
         'Uniqueness': {2016: '99.73', 2017: '0.00'}, 'Usability': {2016: '74.52', 2017: '0.00'}}
         """
         try:
-            print("yearly qp calculating function called")
+            print("yearly qp calculate function called")
             if params['Usability'] == "true" or params['Usability'] == True:
                 params['Completeness'] = 'true'
                 params['Correctness'] = 'true'
                 params['Timeliness'] = 'true'
-            years = _years
+
+            if params['Correctness'] == "true" or  params['Correctness'] == True:
+                params['Completeness'] = 'true'
+                params['Validity'] = 'true'
+
+            #years = _years
             for year in years:
                 pattern = "/" + str(year) + " "
                 #print pattern
                 self.coll.aggregate([{"$match": {"DateTimeStamp": {"$regex": pattern}}}, {"$out": "temp_coll"}])
 
                 self.coll = self.db.temp_coll
-                # print temp_total_docs
+
                 temp_total_docs = self.coll.find().count()
                 # print temp_total_fields
                 temp_total_fields = temp_total_docs * self.count
@@ -120,46 +136,56 @@ class YearlyQPCalculation:
                 if params['Completeness'] == 'true' or params['Completeness'] == True:
                     completeness = self.get_completeness(temp_total_fields)
                     self.monthly_parameters["Completeness"][year] = "{0:.2f}".format(completeness)
-                else :
+                else:
+                    completeness = 0
                     self.monthly_parameters["Completeness"] = {}
 
                 if params['Uniqueness'] == 'true' or params['Uniqueness'] == True:
                     uniqueness = self.get_uniqueness(temp_total_docs)
                     self.monthly_parameters["Uniqueness"][year] = "{0:.2f}".format(uniqueness)
                 else:
+                    uniqueness = 0
                     self.monthly_parameters["Uniqueness"] = {}
 
                 if params['Validity'] == 'true' or params['Validity'] == True:
                     validity = self.get_validity(temp_total_fields)
                     self.monthly_parameters["Validity"][year] = "{0:.2f}".format(validity)
                 else:
+                    validity = 0
                     self.monthly_parameters["Validity"] = {}
 
                 if params['Timeliness'] == 'true' or params['Timeliness'] == True:
-                    timeliness = self.get_timeliness()
+                    timeliness = self.get_timeliness(days)
                     self.monthly_parameters["Timeliness"][year] = "{0:.2f}".format(timeliness)
                 else:
+                    timeliness = 0
                     self.monthly_parameters["Timeliness"] = {}
 
                 if params['Correctness'] == 'true' or params['Correctness'] == True:
-                    correctness = self.get_correctness()
+                    correctness = self.get_correctness(temp_total_fields)
                     self.monthly_parameters["Correctness"][year] = "{0:.2f}".format(correctness)
                 else:
+                    correctness = 0
                     self.monthly_parameters["Correctness"] = {}
 
                 if params['Correctness'] == 'true' or params['Correctness'] == True:
                     usability = completeness * timeliness * correctness/10000.0
                     self.monthly_parameters["Usability"][year] = "{0:.2f}".format(usability)
                 else:
+                    usability = 0
                     self.monthly_parameters["Usability"] = {}
 
                 self.coll = self.db.wqprocess
             return self.monthly_parameters
         except Exception:
+            print("exception in yearly qp")
             return 0
 
-# Instantiating the class for testing purpose
-# params = YearlyQPCalculation()
+# Instantiating the YearlyQPCalculation class for testing purpose
+# param = YearlyQPCalculation()
 # years = [2016, 2017]
-# p= params.calculate_yearly_parameters(years)
+# _params = {'Completeness': 'true', 'Correctness': 'true', 'Timeliness': 'true', 'Validity': 'true',
+#            'Uniqueness': 'true', 'Usability': 'true'}
+# _days = 366
+# p = param.calculate_yearly_parameters(years, _params, _days)
 # print p

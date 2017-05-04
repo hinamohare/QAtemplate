@@ -25,7 +25,7 @@ class FileInputProcess:
         :param filename: 
         :return: 
         """
-
+        print("imprting csv file content into db without cleaning")
         mng_client = pymongo.MongoClient('localhost', 27017)
         mng_db = mng_client['qaplatformdb']  # Replace mongo db name
         collection_name = 'wqprocess'  # Replace mongo db collection name
@@ -56,6 +56,7 @@ class FileInputProcess:
         :return: {'Overall Data Quality': '91.22', 'Completeness': '98.05', 'Timeliness': '95.00', 
         'Correctness': '80.00', 'Validity': '100.00', 'Uniqueness': '99.73', 'Usability': '74.52'}
         """
+        print("This is stationbased qp calculation for csv file")
         results =[]
 
         # result = {'Region':region,'Station':station, 'FromDate':start_date, 'EndDate': end_date,
@@ -65,32 +66,52 @@ class FileInputProcess:
 
         if isCleaningRequired:
             # perform clenaing
+            print("performing cleaning")
             dataCleaner = DataCleaning()
             dataCleaner.cleanCSVData(filename)
 
         else :
             #read file and insert data into processing collection
+            print("importing file without cleaning")
             self.import_content(filename)
 
         #now data is in processing collection (cleaned or uncleaned) db = qaplatformdb and collection = wqprocess contains the cleaned data
         #defaultQAParameters = {}
         qpDefaultObj = QPCalculation()
-        result['DefaultQualityParameters'] = qpDefaultObj.calculate_parameters(parameters)
+        print ("calculating default qp parameters")
+        result["DefaultQPFlag"] = True
+        result['DefaultQualityParameters'] = qpDefaultObj.calculate_parameters(parameters,366)
         #{'Overall Data Quality': '91.22', 'Completeness': '98.05', 'Timeliness': '95.00',
         #'Correctness': '80.00', 'Validity': '100.00', 'Uniqueness': '99.73', 'Usability': '74.52'}
+
+        result["YearlyQPFlag"] = False
         if yearly :
+            print ("calculating yearly qp parameters")
             _years =[]
             for year in range(int(startYear), int(endYear)+1):
                 _years.append(year)
             qpYearlyObj = YearlyQPCalculation()
-            result['YearlyQualityParameters'] = qpYearlyObj.calculate_yearly_parameters(_years, parameters)
+            result["YearlyQPFlag"] = True
+            result['YearlyQualityParameters'] = qpYearlyObj.calculate_yearly_parameters(_years, parameters,366)
+            result["YearlyLabel"] = _years
 
+        result["MonthlyQPFlag"] = False
         if monthly :
+            print ("calculating monthly qp parameters")
             _yearsForMonthly = []
             for year in range(int(monthStartDate), int(monthEndDate)+1):
-                _years.append(year)
+                _yearsForMonthly.append(year)
             qpMonthlyObj = MonthlyQPCalculation()
-            result['MonthlyQualityParameters'] = qpMonthlyObj.calculate_monthly_parameters(_yearsForMonthly, parameters)
+            result["MonthlyQPFlag"] = True
+            result['MonthlyQualityParameters'] = qpMonthlyObj.calculate_monthly_parameters(parameters,_yearsForMonthly,366)
+            # generating label for months
+            monthlabel = []
+
+            month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+            for y in _yearsForMonthly:
+                for m in month:
+                    monthlabel.append(m + str(y))
+            result['MonthlyLabel'] = monthlabel
 
         #get data from the processing collection to insert into validated data set
         processObj = DataProcess()
@@ -100,6 +121,7 @@ class FileInputProcess:
         dbObj.insertResult(result, data)
 
         results.append(result)
+        print ({'ModelBasedSubType': 'StationBased', 'Result': results})
         return {'ModelBasedSubType': 'StationBased', 'Result': results}
 
 
@@ -125,6 +147,7 @@ class WebAPIInputProcess:
         :param endYear: 
         :return: 
         """
+        print("This is stationbased qp calculation for web file")
         results =[]
         # result = {'Region': region, 'Station': station, 'FromDate': start_date, 'EndDate': end_date,
         #           'IsCleaned': isCleaningRequired, 'DefaultQualityParameters': '', 'YearlyQualityParameters': '',
@@ -144,38 +167,72 @@ class WebAPIInputProcess:
             dataCleaner.defaultCleanJSONData(jsonList)
 
         qpDefaultObj = QPCalculation()
-
-        result['DefaultQualityParameters'] = qpDefaultObj.calculate_parameters(parameters)
+        print ("calculating default qp parameters")
+        result["DefaultQPFlag"] = True
+        result['DefaultQualityParameters'] = qpDefaultObj.calculate_parameters(parameters,366)
         # {'Overall Data Quality': '91.22', 'Completeness': '98.05', 'Timeliness': '95.00',
         # 'Correctness': '80.00', 'Validity': '100.00', 'Uniqueness': '99.73', 'Usability': '74.52'}
+        print("Successfully calculated default parameters")
+        print (result['DefaultQualityParameters'])
+
+        result["YearlyQPFlag"] = False
         if yearly:
             _years = []
+            print ("calculating yearly qp parameters")
             for year in range(int(startYear), int(endYear) + 1):
                 _years.append(year)
             qpYearlyObj = YearlyQPCalculation()
-            result['YearlyQualityParameters'] = qpYearlyObj.calculate_yearly_parameters(_years, parameters)
+            result["YearlyQPFlag"] = True
+            result['YearlyQualityParameters'] = qpYearlyObj.calculate_yearly_parameters(_years, parameters,366)
+            result["YearlyLabel"] = _years
+            print("Successfully calculated yearly parameters")
+            #print(result['YearlyQualityParameters'])
 
+        result["MonthlyQPFlag"] = True
         if monthly:
+            print ("calculating monthly qp parameters")
             _yearsForMonthly = []
-            for year in range(int(monthStartDate), int(monthEndDate) + 1):
-                _years.append(year)
-            qpMonthlyObj = MonthlyQPCalculation()
-            result['MonthlyQualityParameters'] = qpMonthlyObj.calculate_monthly_parameters(_yearsForMonthly, parameters)
 
+            #print ("monthStartDate: ",monthStartDate)
+            #print ("monthEndDate: ",monthEndDate)
+            for year in range(int(monthStartDate), int(monthEndDate) + 1):
+                _yearsForMonthly.append(year)
+            qpMonthlyObj = MonthlyQPCalculation()
+            result["MonthlyQPFlag"] = True
+            result['MonthlyQualityParameters'] = qpMonthlyObj.calculate_monthly_parameters(parameters,_yearsForMonthly,366)
+
+            #generating label for months
+            monthlabel = []
+
+            month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+            for y in _yearsForMonthly:
+                for m in month:
+                    monthlabel.append(m + str(y))
+            result['MonthlyLabel'] = monthlabel
+            print("Successfully calculated monthly parameters")
+            #print(result['MonthlyQualityParameters'] )
+
+        #print result
+        #print("calling insert validated data into db")
         # get data from the processing collection to insert into validated data set
         processObj = DataProcess()
+
         data = processObj.getDataFromProcess()
         # insert the result into validated dataset
         dbObj = ValidatedData()
+
         dbObj.insertResult(result, data)
+
         results.append(result)
+
+        #print({'ModelBasedSubType': 'StationBased', 'Result': results})
         return {'ModelBasedSubType': 'StationBased', 'Result': results}
 
 
     def processRegionBAsed(self, region, start_date, end_date,
                                 isCleaningRequired, parameters, monthly,monthStartDate,monthEndDate, yearly, startYear, endYear):
         results =[]
-
+        print("This is regionbased qp calculation for web service  data")
         obj = RegionData()
         # print obj.getAllRegionInfo()
         data = obj.getSingleRegionInfo(region)
@@ -183,9 +240,13 @@ class WebAPIInputProcess:
         stations = []
         for stationdata in stationsInfo:
             station = stationdata['StationName']
+            print("/n calculating parameters for station",station)
             result = self.processStationBased(region, station, start_date, end_date,
                             isCleaningRequired, parameters, monthly, monthStartDate, monthEndDate, yearly, startYear, endYear)
-            results.append(result[0])
+            print result["Result"][0]
+            results.append(result["Result"][0])
+
+        print("/n result for all stations in the given region is: ",{'ModelBasedSubType': 'RegionBased', 'Result': results})
 
         return {'ModelBasedSubType': 'RegionBased', 'Result': results}
 

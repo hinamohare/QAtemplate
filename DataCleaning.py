@@ -3,6 +3,7 @@ import pandas as pd
 from pprint import pprint # to pretty print the cursor result.
 import pandas as pd
 import pymongo
+import model
 """
 1. remove the station codes and flags if any
 2. remove duplicate rows
@@ -10,7 +11,7 @@ import pymongo
 """
 class DataCleaning :
     def __init__(self):
-        self.client = pymongo.MongoClient()
+        self.client = model.getMongoDB()
         #db and collection for testing purpose
         #self.db = self.client.currentTest
         self.db = self.client.qaplatformdb

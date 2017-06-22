@@ -2,8 +2,8 @@ from pymongo import MongoClient
 from bson.json_util import dumps
 import json
 
+client = MongoClient()
 def getMongoDB():
-    client = MongoClient()
     return client
 
 
@@ -17,7 +17,7 @@ class DataProcess:
 
     def getDataFromProcess(self):
         print("getting processing data from collection")
-        data = list(self.coll.find())
+        data = list(self.coll.find({"_id":0}))
         if data is not None:
             return data
         else:
@@ -194,7 +194,7 @@ class ValidatedData:
         print("insert validated data into db function called")
 
         newresult = dict(result.items())
-        #newresult["Data"] = data
+        newresult["Data"] = data
         # client = MongoClient()  # setting connection with the mongoclient
         #
         # #db = client.test  # test database
@@ -426,5 +426,3 @@ result = {	'Region': u'Padilla Bay, WA',
 								}
 
 }
-obj = ValidatedData()
-obj.insertResult(result, "temp")

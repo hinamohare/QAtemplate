@@ -1,3 +1,5 @@
+import uuid
+
 import DataCleaning
 from DataCleaning import DataCleaning
 import sys
@@ -11,6 +13,8 @@ from calculate_monthly_QP import MonthlyQPCalculation
 
 from datacollect import DataCollectionFromWebService
 from model import ValidatedData, RegionData, DataProcess
+import model
+from datetime import datetime
 
 class FileInputProcess:
     """
@@ -26,7 +30,8 @@ class FileInputProcess:
         :return: 
         """
         print("imprting csv file content into db without cleaning")
-        mng_client = pymongo.MongoClient('localhost', 27017)
+        #mng_client = pymongo.MongoClient('localhost', 27017)
+        mng_client = model.getMongoDB()
         mng_db = mng_client['qaplatformdb']  # Replace mongo db name
         collection_name = 'wqprocess'  # Replace mongo db collection name
         db_cm = mng_db[collection_name]
@@ -37,7 +42,7 @@ class FileInputProcess:
         data_json = json.loads(data.to_json(orient='records'))
         db_cm.remove()
         db_cm.insert(data_json)
-        print ("data inserted succesfully")
+        print ("csv file data inserted succesfully into wqprocess collection")
 
     def process(self, region, station, start_date, end_date, filename,
                 isCleaningRequired, parameters, monthly,monthStartDate,monthEndDate, yearly, startYear, endYear):
@@ -62,7 +67,7 @@ class FileInputProcess:
         # result = {'Region':region,'Station':station, 'FromDate':start_date, 'EndDate': end_date,
         #           'IsCleaned':isCleaningRequired,'DefaultQualityParameters': '', 'YearlyQualityParameters':'',
         #           'MonthlyQualityParameters':''}
-        result = {'Region': region, 'Station': station, 'FromDate': start_date, 'EndDate': end_date, 'IsCleaned':isCleaningRequired}
+        result = {'Region': region, 'Station': station, 'From': start_date, 'To': end_date, 'IsCleaned':isCleaningRequired}
 
         if isCleaningRequired:
             # perform clenaing
@@ -80,7 +85,9 @@ class FileInputProcess:
         qpDefaultObj = QPCalculation()
         print ("calculating default qp parameters")
         result["DefaultQPFlag"] = True
-        result['DefaultQualityParameters'] = qpDefaultObj.calculate_parameters(parameters,366)
+        days = getDays(start_date, end_date)
+        print ("We are calculating default params for : ",days)
+        result['DefaultQualityParameters'] = qpDefaultObj.calculate_parameters(parameters,days)
         #{'Overall Data Quality': '91.22', 'Completeness': '98.05', 'Timeliness': '95.00',
         #'Correctness': '80.00', 'Validity': '100.00', 'Uniqueness': '99.73', 'Usability': '74.52'}
 
@@ -92,7 +99,7 @@ class FileInputProcess:
                 _years.append(year)
             qpYearlyObj = YearlyQPCalculation()
             result["YearlyQPFlag"] = True
-            result['YearlyQualityParameters'] = qpYearlyObj.calculate_yearly_parameters(_years, parameters,366)
+            result['YearlyQualityParameters'] = qpYearlyObj.calculate_yearly_parameters(parameters,_years)
             result["YearlyLabel"] = _years
 
         result["MonthlyQPFlag"] = False
@@ -103,7 +110,7 @@ class FileInputProcess:
                 _yearsForMonthly.append(year)
             qpMonthlyObj = MonthlyQPCalculation()
             result["MonthlyQPFlag"] = True
-            result['MonthlyQualityParameters'] = qpMonthlyObj.calculate_monthly_parameters(parameters,_yearsForMonthly,366)
+            result['MonthlyQualityParameters'] = qpMonthlyObj.calculate_monthly_parameters(parameters,_yearsForMonthly)
             # generating label for months
             monthlabel = []
 
@@ -117,11 +124,12 @@ class FileInputProcess:
         processObj = DataProcess()
         data = processObj.getDataFromProcess()
         #insert the result into validated dataset
+        print("Inserting validated data from file into db")
         dbObj = ValidatedData()
         dbObj.insertResult(result, data)
 
         results.append(result)
-        print ({'ModelBasedSubType': 'StationBased', 'Result': results})
+        #print ({'ModelBasedSubType': 'StationBased', 'Result': results})
         return {'ModelBasedSubType': 'StationBased', 'Result': results}
 
 
@@ -153,7 +161,7 @@ class WebAPIInputProcess:
         #           'IsCleaned': isCleaningRequired, 'DefaultQualityParameters': '', 'YearlyQualityParameters': '',
         #           'MonthlyQualityParameters': ''}
 
-        result = {'Region': region, 'Station': station, 'FromDate': start_date, 'EndDate': end_date,'IsCleaned': isCleaningRequired}
+        result = {'Region': region, 'Station': station, 'From': start_date, 'To': end_date,'IsCleaned': isCleaningRequired}
 
         #call web api to get data
         apiDataObj = DataCollectionFromWebService()
@@ -169,7 +177,10 @@ class WebAPIInputProcess:
         qpDefaultObj = QPCalculation()
         print ("calculating default qp parameters")
         result["DefaultQPFlag"] = True
-        result['DefaultQualityParameters'] = qpDefaultObj.calculate_parameters(parameters,366)
+        result["uid"]= str(uuid.uuid4())
+        days = getDays(start_date,end_date)
+        print ("We are calculating default params for : ", days)
+        result['DefaultQualityParameters'] = qpDefaultObj.calculate_parameters(parameters,days)
         # {'Overall Data Quality': '91.22', 'Completeness': '98.05', 'Timeliness': '95.00',
         # 'Correctness': '80.00', 'Validity': '100.00', 'Uniqueness': '99.73', 'Usability': '74.52'}
         print("Successfully calculated default parameters")
@@ -183,12 +194,12 @@ class WebAPIInputProcess:
                 _years.append(year)
             qpYearlyObj = YearlyQPCalculation()
             result["YearlyQPFlag"] = True
-            result['YearlyQualityParameters'] = qpYearlyObj.calculate_yearly_parameters(_years, parameters,366)
+            result['YearlyQualityParameters'] = qpYearlyObj.calculate_yearly_parameters(parameters,_years)
             result["YearlyLabel"] = _years
             print("Successfully calculated yearly parameters")
             #print(result['YearlyQualityParameters'])
 
-        result["MonthlyQPFlag"] = True
+        result["MonthlyQPFlag"] = False
         if monthly:
             print ("calculating monthly qp parameters")
             _yearsForMonthly = []
@@ -199,7 +210,7 @@ class WebAPIInputProcess:
                 _yearsForMonthly.append(year)
             qpMonthlyObj = MonthlyQPCalculation()
             result["MonthlyQPFlag"] = True
-            result['MonthlyQualityParameters'] = qpMonthlyObj.calculate_monthly_parameters(parameters,_yearsForMonthly,366)
+            result['MonthlyQualityParameters'] = qpMonthlyObj.calculate_monthly_parameters(parameters,_yearsForMonthly)
 
             #generating label for months
             monthlabel = []
@@ -219,6 +230,7 @@ class WebAPIInputProcess:
 
         data = processObj.getDataFromProcess()
         # insert the result into validated dataset
+        print("Inserting validated data from api into db")
         dbObj = ValidatedData()
 
         dbObj.insertResult(result, data)
@@ -250,3 +262,11 @@ class WebAPIInputProcess:
 
         return {'ModelBasedSubType': 'RegionBased', 'Result': results}
 
+
+def getDays(startdate, enddate):
+    D1 = datetime.strptime(startdate, "%m/%d/%Y")
+    D2 = datetime.strptime(enddate, "%m/%d/%Y")
+    days = abs((D2-D1).days) + 1
+    return days
+
+#uid added to result

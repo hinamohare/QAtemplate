@@ -46,19 +46,19 @@ def getAllStationInformation():
     data = obj.getAllStationInfo()
     return jsonify({"stations": json.loads(dumps(data))})
 
-sampleSearchResult = [{	'Region': u'Padilla Bay, WA',
-	'Station': u'China Camp',
+sampleSearchResult = [{	 'uid': str(uuid.uuid4()),'Region': u'1 Padilla Bay, WA',
+	'Station': u'China Camp 1',
 	'IsCleaned': True,
 	'DefaultQPFlag': True,
 	'EndDate': u'12/31/2015',
 	'FromDate': u'1/1/2014',
-	'DefaultQualityParameters':	{	'Overall Data Quality': '57.30',
+	'DefaultQualityParameters':	{	'Overall_Data_Quality': '57.30',
 									'Completeness': '69.79',
-									'Timeliness': '2.85',
+									'Timeliness': '80.85',
 									'Correctness': '69.79',
 									'Validity': '100.00',
-									'Uniqueness': '100.00',
-									'Usability': '1.39'
+									'Uniqueness': '90.00',
+									'Usability': '45.65'
 								},
 
 
@@ -75,7 +75,41 @@ sampleSearchResult = [{	'Region': u'Padilla Bay, WA',
 									'Usability': [86,64,85,89,74,90,50,80,60,70,80,90],
 								}
 
-}]
+},
+                      { 'uid': str(uuid.uuid4()),'Region': u'2 Padilla Bay, WA',
+                       'Station': u'China Camp 2',
+                       'IsCleaned': True,
+                       'DefaultQPFlag': True,
+                       'EndDate': u'12/31/2015',
+                       'FromDate': u'1/1/2014',
+                       'DefaultQualityParameters': {'Overall_Data_Quality': '57.30',
+                                                    'Completeness': '9.79',
+                                                    'Timeliness': '26.85',
+                                                    'Correctness': '69.79',
+                                                    'Validity': '89.00',
+                                                    'Uniqueness': '100.00',
+                                                    'Usability': '51.39'
+                                                    },
+
+                       'YearlyQPFlag': True,
+                       'YearlyLabel': [2014, 2015],
+                       'YearlyQualityParameters': {'Completeness': [80, 90], 'Timeliness': [50, 95],
+                                                   'Correctness': [65, 82], 'Validity': [84, 96],
+                                                   'Uniqueness': [80, 65], 'Usability': [96, 76]},
+                       'MonthlyQPFlag': True,
+                       'MonthlyLabel': ['Jan 2016', 'Feb 2017', 'Mar 2016', 'Apr 2017', 'May 2017', 'June 2016',
+                                        'July 2016', 'August 2016', 'September 2016', 'October 2016', 'November 2016',
+                                        'December 2016'],
+                       'MonthlyQualityParameters': {'Completeness': [45, 55, 67, 69, 78, 99, 86, 80, 73, 78, 88, 94],
+                                                    'Timeliness': [99, 86, 85, 89, 74, 90, 50, 80, 40, 70, 80, 90],
+                                                    'Correctness': [50, 40, 50, 64, 86, 85, 74, 80, 60, 70, 80, 90],
+                                                    'Validity': [38, 46, 50, 60, 70, 80, 50, 80, 60, 70, 80, 90],
+                                                    'Uniqueness': [ 70, 80,  85, 89, 74, 90, 50, 89, 74, 71, 81, 90],
+                                                    'Usability': [86, 64, 89, 74, 71, 81, 90, 80, 60, 70, 80, 90],
+                                                    }
+
+                       }
+    ]
 # api to search the station record in the validated dataset
 @app.route('/search', methods=['GET'])
 def searchData():
@@ -114,6 +148,7 @@ def searchData():
 
     if (records is not None):
         #print(dumps(records))
+        print records
         return jsonify(data={'found': 'yes', 'records': json.loads( dumps(records))})
     else:
         return jsonify(data={'found': "no"})
@@ -243,10 +278,11 @@ def getWaterQuality():
 
                 #result = sampleStationBasedResult
                 result = apiDataProcessObj.processStationBased(region, station, start_date, end_date,
-                           isCleaningRequired, parameters, monthly,monthStartDate,monthEndDate, yearly, startYear, endYear)
+                         isCleaningRequired, parameters, monthly,monthStartDate,monthEndDate, yearly, startYear, endYear)
             else:
                 result = apiDataProcessObj.processRegionBAsed(region, start_date, end_date,
-                           isCleaningRequired, parameters, monthly,monthStartDate,monthEndDate, yearly, startYear, endYear)
+                isCleaningRequired, parameters, monthly,monthStartDate,monthEndDate, yearly, startYear, endYear)
+
                 #result = sampleRegionBasedResult
             print("\\n\\nThe final return body is: ", result)
             return jsonify(data=result)
@@ -321,13 +357,13 @@ def getReportFor(id):
         result = document
     return jsonify(report= json.loads(dumps(result)))
 
-sampleStationBasedResult = {'ModelBasedSubType': 'StationBased', 'Result':[{	'Region': u'Padilla Bay, WA',
+sampleStationBasedResult = {'ModelBasedSubType': 'StationBased', 'Result':[{ 'uid': str(uuid.uuid4()),	'Region': u'Padilla Bay, WA',
 	'Station': u'China Camp',
 	'IsCleaned': True,
 	'DefaultQPFlag': True,
 	'EndDate': u'12/31/2015',
 	'FromDate': u'1/1/2014',
-	'DefaultQualityParameters':	{	'Overall Data Quality': '57.30',
+	'DefaultQualityParameters':	{	'Overall_Data_Quality': '57.30',
 									'Completeness': '69.79',
 									'Timeliness': '2.85',
 									'Correctness': '69.79',
@@ -352,13 +388,13 @@ sampleStationBasedResult = {'ModelBasedSubType': 'StationBased', 'Result':[{	'Re
 
 }]}
 sampleRegionBasedResult = {'ModelBasedSubType': 'RegionBased', 'Result': [
-    {'Region': u'Padilla Bay, WA',
+    { 'uid': str(uuid.uuid4()),'Region': u'Padilla Bay, WA',
      'Station': u'China Camp',
      'IsCleaned': True,
      'DefaultQPFlag': True,
      'EndDate': u'12/31/2015',
      'FromDate': u'1/1/2014',
-     'DefaultQualityParameters': {'Overall Data Quality': '57.30',
+     'DefaultQualityParameters': {'Overall_Data_Quality': '57.30',
                                   'Completeness': '69.79',
                                   'Timeliness': '2.85',
                                   'Correctness': '69.79',
@@ -374,27 +410,27 @@ sampleRegionBasedResult = {'ModelBasedSubType': 'RegionBased', 'Result': [
      'MonthlyQPFlag': True,
      'MonthlyLabel': ['Jan 2016', 'Feb 2017', 'Mar 2016', 'Apr 2017', 'May 2017', 'June 2016', 'July 2016',
                       'August 2016', 'September 2016', 'October 2016', 'November 2016', 'December 2016'],
-     'MonthlyQualityParameters': {'Completeness': [30, 40, 50, 60, 70, 90, 50, 80, 60, 70, 80, 90],
-                                  'Timeliness': [40, 64, 85, 89, 74, 90, 50, 80, 60, 70, 80, 90],
-                                  'Correctness': [50, 40, 50, 64, 85, 89, 74, 80, 60, 70, 80, 90],
-                                  'Validity': [38, 46, 50, 60, 70, 80, 50, 80, 60, 70, 80, 90],
-                                  'Uniqueness': [40, 70, 50, 60, 70, 64, 85, 89, 74, 71, 81, 90],
-                                  'Usability': [86, 64, 85, 89, 74, 90, 50, 80, 60, 70, 80, 90],
+     'MonthlyQualityParameters': {'Completeness': [54, 40, 65, 60, 70, 90, 50, 80, 60, 70, 80, 90],
+                                  'Timeliness': [40, 64, 85, 89, 74, 90, 50, 87, 60, 70, 80, 90],
+                                  'Correctness': [50, 54, 50, 64, 85, 89, 74, 80, 60, 70, 80, 90],
+                                  'Validity': [38, 46, 76, 60, 76, 80, 50, 80, 23, 70, 80, 90],
+                                  'Uniqueness': [40, 70, 50, 76, 70, 64, 85, 89, 74, 71, 81, 90],
+                                  'Usability': [56, 64, 85, 89, 74, 90, 50, 80, 60, 70, 80, 90],
                                   }
 
-     },{	'Region': u'Padilla Bay, WA',
+     },{ 'uid': str(uuid.uuid4()),	'Region': u'Padilla Bay, WA',
 	'Station': u'China Camp',
 	'IsCleaned': True,
 	'DefaultQPFlag': True,
 	'EndDate': u'12/31/2015',
 	'FromDate': u'1/1/2014',
-	'DefaultQualityParameters':	{	'Overall Data Quality': '57.30',
-									'Completeness': '69.79',
+	'DefaultQualityParameters':	{	'Overall_Data_Quality': '22.30',
+									'Completeness': '90.79',
 									'Timeliness': '2.85',
 									'Correctness': '69.79',
-									'Validity': '100.00',
-									'Uniqueness': '100.00',
-									'Usability': '1.39'
+									'Validity': '56.00',
+									'Uniqueness': '12.00',
+									'Usability': '91.39'
 								},
 
 
@@ -404,27 +440,27 @@ sampleRegionBasedResult = {'ModelBasedSubType': 'RegionBased', 'Result': [
 	'MonthlyQPFlag': True,
 	'MonthlyLabel' : ['Jan 2016', 'Feb 2017', 'Mar 2016', 'Apr 2017', 'May 2017', 'June 2016', 'July 2016', 'August 2016', 'September 2016','October 2016', 'November 2016', 'December 2016'],
 	'MonthlyQualityParameters': {'Completeness': [30,40,50,60,70,90,50,80,60,70,80,90],
-									'Timeliness': [40,64,85,89,74,90,50,80,60,70,80,90],
-									'Correctness': [50,40,50,64,85,89,74,80,60,70,80,90],
-									'Validity': [38,46,50,60,70,80,50,80,60,70,80,90],
-									'Uniqueness': [40,70,50,60,70,64,85,89,74,71,81,90],
-									'Usability': [86,64,85,89,74,90,50,80,60,70,80,90],
+									'Timeliness': [6,64,85,89,74,90,50,80,60,70,80,90],
+									'Correctness': [50,40,50,64,67,89,74,80,60,70,80,90],
+									'Validity': [38,46,50,76,70,80,50,80,60,70,80,6],
+									'Uniqueness': [40,67,50,60,70,64,85,89,74,76,81,90],
+									'Usability': [86,64,85,89,74,76,50,80,60,70,80,90],
 								}
 
 },
-    {'Region': u'Padilla Bay, WA',
+    { 'uid': str(uuid.uuid4()),'Region': u'Padilla Bay, WA',
      'Station': u'China Camp',
      'IsCleaned': True,
      'DefaultQPFlag': True,
      'EndDate': u'12/31/2015',
      'FromDate': u'1/1/2014',
-     'DefaultQualityParameters': {'Overall Data Quality': '57.30',
-                                  'Completeness': '69.79',
-                                  'Timeliness': '2.85',
+     'DefaultQualityParameters': {'Overall_Data_Quality': '57.30',
+                                  'Completeness': '98.79',
+                                  'Timeliness': '32.85',
                                   'Correctness': '69.79',
-                                  'Validity': '100.00',
-                                  'Uniqueness': '100.00',
-                                  'Usability': '1.39'
+                                  'Validity': '67.00',
+                                  'Uniqueness': '78.00',
+                                  'Usability': '15.39'
                                   },
 
      'YearlyQPFlag': True,
@@ -444,6 +480,11 @@ sampleRegionBasedResult = {'ModelBasedSubType': 'RegionBased', 'Result': [
 
      }
  ]}
+"""
+model.getMongoDB() inserted in datacleaning.py, process.py for import_client function
+uid inserted in result
+overall_data_quality
+"""
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)  # run app in debug mode

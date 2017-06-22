@@ -21,21 +21,22 @@ data = {'region':"Padilla Bay, WA", 'stations':[
 obj = RegionData()
 """
 
-"""
-#WEB API
+
+
+import SOAPpy
 
 server = SOAPpy.SOAPProxy("http://cdmo.baruch.sc.edu/webservices2/requests.cfc?wsdl")
-responsedata =  server.exportAllParamsDateRangeXMLNew('kacsdwq', '2014-12-30', '2014-12-31','*')
-
+#responsedata =  server.exportAllParamsDateRangeXMLNew('niwolwq', '*', 'pH')
+responsedata =  server.exportSingleParamXML('niwolwq', '2000', 'Turb')
 pythonObject = SOAPpy.Types.simplify(responsedata)
-#print responsedata
-dataArray =  pythonObject["returnData"]["data"]
-#print(dataArray)
-
+print responsedata
+# dataArray =  pythonObject
+# print(dataArray)
+"""
 obj = DataCleaning ()
 obj.cleanJSONData(json.dumps(dataArray))
 
-"""
+
 # client = pymongo.MongoClient()
 # #db and collection for testing purpose
 # #self.db = self.client.currentTest
@@ -44,6 +45,7 @@ obj.cleanJSONData(json.dumps(dataArray))
 # collection.remove()
 # collection.insert_many(dataArray)
 
+"""
 """
 client = pymongo.MongoClient()
 #db and collection for testing purpose
@@ -182,12 +184,21 @@ print newStart_Date, newEnd_Date
 #
 # print newresult
 # print result
-monthlabel =[]
-years = [2017, 218]
-month = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
-for y in years:
-    for m in month:
-        monthlabel.append(m+str(y))
-
-print monthlabel
-
+# monthlabel =[]
+# years = [2017, 218]
+# month = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+# for y in years:
+#     for m in month:
+#         monthlabel.append(m+str(y))
+#
+# print monthlabel
+#
+# from datetime import datetime
+# def getDays(startdate, enddate):
+#     D1 = datetime.strptime(startdate, "%m/%d/%Y")
+#     D2 = datetime.strptime(enddate, "%m/%d/%Y")
+#     days = abs((D2-D1).days) + 1
+#     return days
+# 
+# 
+# print getDays("01/01/2014", "12/31/2014")

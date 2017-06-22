@@ -25,7 +25,7 @@
   overflow-x: hidden;
   overflow-y: scroll;
   clear:both;
-  height:600px;
+  height:400px;
 }
 
 .swMain .stepContainer div.content {
@@ -38,7 +38,7 @@
   font: normal 15px Raleway,Verdana, Arial, Helvetica, sans-serif;
   color:#5A5655;   
   background-color:#F8F8F8;  
-  height:600px;
+  height:400px;
   text-align:left;
   overflow:hidden;
   z-index:88; 

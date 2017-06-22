@@ -37,41 +37,7 @@
 <script src="https://code.highcharts.com/highcharts-more.js"></script>
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
 <script type="text/javascript">
-    // google.charts.load("current", {packages:["corechart","gauge","table"]});
-    // google.charts.setOnLoadCallback(drawGuageChart);
 
-
-    function initMap() {
-        var homeMap = new google.maps.Map(document.getElementById('homeRegionMap'), {
-            zoom: 4,
-            center: {lat: 37.548839, lng: -122.2597169},
-            zoomControl: true,
-            scaleControl: true
-        });
-        var reportMap = new google.maps.Map(document.getElementById('regionMap'), {
-            zoom: 4,
-            center: {lat: 37.548839, lng: -122.2597169},
-            zoomControl: true,
-            scaleControl: true
-        });
-        var neighborhoods = [
-            new google.maps.LatLng(52.511467, 13.447179),
-            new google.maps.LatLng(51.549061, 13.422975),
-            new google.maps.LatLng(51.697622, 13.396110),
-            new google.maps.LatLng(52.576683, 13.344393)
-        ];
-        var markers = [];
-
-        drop(homeMap, neighborhoods, markers);
-
-    }
-
-    // Adds a marker to the map.
-    function drop(map, neighborhoods, markers) {
-        for (var i = 0; i < neighborhoods.length; i++) {
-            markers.push(new google.maps.Marker({position: neighborhoods[i], map: map}));
-        }
-    }
 
     // Get the Sidebar
     var mySidebar = document.getElementById("mySidebar");
@@ -148,370 +114,8 @@
 
 
 </script>
-<!--script async defer
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDOKQ7m8UJHH0nVxIrd6yNFa44oa-iK6tM&callback=initMap"></script-->
-<script>
-    $(document).ready(function () {
 
 
-        //$('#modal').modal();
-        // Smart Wizard
-        $('#wizard').smartWizard({onFinish: onFinishCallback});
-
-        function onFinishCallback(objs, context) {
-
-            if (validateAllSteps()) {
-
-                var data =viewModel.DataInputModel;
-                data.Source = viewModel.DiSourceValue();
-                //data.CsvFileName= "98723420348.csv",
-                //name of file input taken from the server side
-                data.CsvFileName=$('#hdnFileName').val()
-                data.Region = $("#dropdowndatainputregion").val();
-                data.Station = $("#dropdownstation").val();
-                if(data.Station == 'Other')
-                {
-                    data.Station = $('#txtInputOtherStation').val();
-                }
-
-                data.FromDate = $("#datepickerdatainputfrom").val();
-                data.ToDate = $("#datepickerdatainputto").val();
-                data.IsRequiredClean =viewModel.IsRequiredClean();
-                data.Parameters.Completeness = viewModel.Completeness();
-                data.Parameters.Correctness = viewModel.Correctness();
-                data.Parameters.Timeliness = viewModel.Timeliness();
-                data.Parameters.Uniqueness = viewModel.Uniqueness();
-                data.Parameters.Validity = viewModel.Validity();
-                data.Parameters.Consistency = viewModel.Consistency();
-                data.Parameters.Reliability = viewModel.Reliability();
-                data.Parameters.Usability = viewModel.Usability();
-                data.ValidationType = viewModel.ValidationType();
-                data.ModelBasedSubType =viewModel.ModelBasedSubType();
-                data.MonthlyValidation=viewModel.MonthlyValidation();
-                data.MonthStartDate=viewModel.MonthStartDate();
-                data.MonthEndDate=viewModel.MonthEndDate();
-                data.YearlyValidation=viewModel.YearlyValidation();
-                data.StartYear=viewModel.StartYear();
-                data.EndYear=viewModel.EndYear();
-
-                data.Model = viewModel.Model();
-                console.log(data);
-                qap.submitdatainput(data,getsetSearchResult);
-               // getsetSearchResult();
-                showcontent(4);
-                //showMessage();
-            }
-        }
-
-        // Your Step validation logic
-        function validateSteps(stepnumber) {
-            var isStepValid = true;
-            // validate step 1
-            if (stepnumber == 1) {
-                // Your step validation logic
-                // set isStepValid = false if has errors
-            }
-            // ...
-        }
-
-        function validateAllSteps() {
-            var isStepValid = true;
-            // all step validation logic
-            return isStepValid;
-        }
-
-        function showMessage() {
-            alert('Hello');
-        }
-
-        $("#collectionaccordion").accordion();
-
-
-        // create a template using the above definition
-        var validatedData = qap.getResult();
-
-        var dataSource = new kendo.data.DataSource({
-            data: validatedData,
-            change: function () { // subscribe to the CHANGE event of the data source
-                //$("#validatedResultSet tbody").html(kendo.render(template, this.view())); // populate the table
-            }
-        });
-
-        // read data from the "movies" array
-        dataSource.read();
-
-        var bindResultGrid = function (resultData) {
-            var tempDataSource =new kendo.data.DataSource({ data: resultData });
-
-            $("#grid").kendoGrid({
-                dataSource: tempDataSource,
-                selectable: "row",
-                change: function (e) {
-                    var selectedRows = this.select();
-                    showdashboard(this.dataItem(selectedRows[0]));
-
-                },
-                // navigatable: true,
-                // navigate: function(e) {
-                //   console.log(e.element); // displays the newly highlighted cell
-                //  },
-                //height: 450,
-                groupable: false,
-                sortable: true,
-                pageable: {
-                    refresh: true,
-                    pageSizes: true,
-                    buttonCount: 5
-                },
-                columns: [{
-                    field: "Region",
-                    title: "Region",
-                    width: 200
-                }, {
-                    field: "Station",
-                    title: "Station",
-                    width: 200
-                }, {
-                    field: "From",
-                    title: "From"
-                }, {
-                    field: "To",
-                    title: "To"
-                }, {
-                    field: "IsCleaned",
-                    title: "Is Cleaned",
-                    width: 100
-                }, {
-                    field: "OverallQuality",
-                    width: 120
-                },
-                {
-                    command: [{
-                        name: "Analysis",
-                        width: 100,
-                        click: function(e) {
-                            // prevent page scroll position change
-                            e.preventDefault();
-                            // e.target is the DOM element representing the button
-                            var tr = $(e.target).closest("tr"); // get the current table row (tr)
-                            // get the data bound to the current table row
-                            var data = this.dataItem(tr);
-                             var selectedRows = this.select();
-                            showdashboard(data);
-                            console.log("Details for: " + data.Region);
-                        }
-                      }]
-                }
-                ]
-            });
-        };
-
-        /*Get Region Start*/
-        var getregion = function(){
-            var regions;
-            $.ajax({
-                type: "GET",
-                url: "/getallregioninfo",
-                dataType:"json",
-                contentType:"application/json",
-                success: function (result) {
-                        regions = result.regions;
-                        binddatainputregion(regions); //Data input page
-                        bindregion(regions); //Search Page
-                },
-                error: function(){
-                    console.log("Error occured while fetching region information")
-                }
-            });
-        };
-        /*Get Region End*/
-
-        var bindregion = function (regions) {
-              $("#dropdownregion").kendoDropDownList({
-                    dataTextField: "RegionName",
-                    dataValueField: "RegionName",
-                    dataSource: regions,
-                    index: 0,
-                    change: function(){
-                        bindstation(this.dataItem().Stations);
-                    },
-                    dataBound:function(e){
-                        bindstation(this.dataItems()[0].Stations);
-                    }
-                });
-            };
-
-
-        var binddatainputregion = function (regions) {
-
-
-            $("#dropdowndatainputregion").kendoDropDownList({
-                dataTextField: "RegionName",
-                dataValueField: "RegionName",
-                dataSource: regions,
-                index: 0,
-                change: function(){
-                        binddatainputstation(this.dataItem().Stations);
-                    },
-                dataBound:function(e){
-                        binddatainputstation(this.dataItems()[0].Stations);
-                    }
-            });
-        };
-        var bindstation = function (stations) {
-            var regionId = 1;
-            //var stations = qap.getStationsByRegionId(regionId);
-            $("#dropdownstation").kendoDropDownList({
-                dataTextField: "StationName",
-                dataValueField: "StationName",
-                dataSource: stations,
-                index: 0,
-                change: function(){
-                        showhideOtherStation('dropdownstation','txtOtherStation');
-                    },
-            });
-
-        };
-
-        var showhideOtherStation=function(drpstation,txtotherstation)
-        {
-            if( $("#"+drpstation).val() == 'Other')
-            {
-                $("#"+txtotherstation).show();
-            }
-            else
-            {
-                $("#"+txtotherstation).hide();
-            }
-        }
-
-        var binddatainputstation = function (stations) {
-            var regionId = 1;
-            //var stations = qap.getStationsByRegionId(regionId);
-            $("#dropdowndatainputstation").kendoDropDownList({
-                dataTextField: "StationName",
-                dataValueField: "StationName",
-                dataSource: stations,
-                index: 0,
-                 change: function(){
-                        showhideOtherStation('dropdowndatainputstation','txtInputOtherStation');
-                    },
-
-            });
-        };
-
-
-        getregion();
-        $("#fromdatepicker").kendoDatePicker();
-        $("#todatepicker").kendoDatePicker();
-        $("#datepickerdatainputfrom").kendoDatePicker();
-        $("#datepickerdatainputto").kendoDatePicker();
-
-
-        //Knocout Bindings
-
-        ko.applyBindings(viewModel);
-
-        var getsetSearchResult = function(){
-
-        var tempregion = $("#dropdownregion").val();
-            var tempstation = $("#dropdownstation").val();
-            if(tempstation == 'Other')
-            {
-                tempstation = $("#txtOtherStation").val();
-            }
-            viewModel.SearchModel.Region=tempregion;
-            viewModel.SearchModel.Station=tempstation;
-            viewModel.SearchModel.FromDate=$('#fromdatepicker').val();
-            viewModel.SearchModel.ToDate=$('#todatepicker').val();
-            var selfQap = qap;
-           // var resultdata = selfQap.search(viewModel.SearchModel);
-           $.ajax({
-                    type:"GET",
-                    url:"/search",
-                    dataType:"json",
-                    //contentType:"application/json",
-                    data:viewModel.SearchModel,
-                     beforeSend: function(){
-                         // Handle the beforeSend event
-                         selfQap.showmodal();
-                       },
-                    success:function(response){
-                        if(response.data.found ==='no')
-                        {
-                            console.log('No Record found');
-                            return;
-                        }
-
-                    },
-                    error:function(response){console.log('There is error while fetching search data')},
-                    complete:function(response){
-                     selfQap.resultModel = response.responseJSON.data.records;
-                     bindResultGrid(selfQap.resultModel);
-                    selfQap.hidemodal();
-
-                    }
-                });
-
-        };
-        $("#btnSearch").on("click", function () {
-            getsetSearchResult();
-
-           // qap.hidemodal();
-        });
-
-         $('#btncsvfile').change(function () {
-        sendFile(this.files[0]);
-        //$('#frmcsvfile').submit(function (e) {
-            // e.preventDefault();
-       // });
-    });
-
-    function sendFile(file) {
-        var fd = new FormData(document.getElementById("frmcsvfile"));
-        $.ajax({
-            type: 'post',
-            url: '/upload',
-            data: fd,
-            success: function (data) {
-                // do something
-                var fname = data.result.filename;
-                console.log(fname);
-                $('#hdnFileName').val(fname);
-            },
-             error: function (data) {
-                // do something
-
-                $('#hdnFileName').val('error');
-            },
-            xhrFields: {
-                // add listener to XMLHTTPRequest object directly for progress (jquery doesn't have this yet)
-                onprogress: function (progress) {
-                    // calculate upload progress
-                    var percentage = Math.floor((progress.total / progress.totalSize) * 100);
-                    // log upload progress to console
-                    console.log('progress', percentage);
-                    if (percentage === 100) {
-                        console.log('DONE!');
-                    }
-                }
-            },
-            processData: false,
-            contentType: false
-        });
-        return false;
-    }
-
-
-    showcontent(2); //show default data input. For debug
-    });
-
-
-
-
-
-
-</script>
 
 
 <body class="w3-light-orange">
@@ -526,12 +130,12 @@
 </div>
 
 <!-- Sidebar/menu -->
-<nav class="w3-sidebar w3-collapse w3-orange w3-text-white w3-animate-left" style="z-index:3;width:300px;"
+<nav class="w3-sidebar w3-collapse w3-orange w3-text-white w3-animate-left" style="z-index:3;width:250px;"
      id="mySidebar"><br>
     <div class="w3-container w3-row">
 
         <div class="w3-col s8 w3-bar">
-            <span>Welcome, <strong>Hina</strong></span><br>
+            <span>Welcome, <strong>Admin</strong></span><br>
             <a href="#" class="w3-bar-item w3-button"><i class="fa fa-envelope"></i></a>
             <a href="#" class="w3-bar-item w3-button"><i class="fa fa-user"></i></a>
             <a href="#" class="w3-bar-item w3-button"><i class="fa fa-cog"></i></a>
@@ -566,7 +170,7 @@
      title="close side menu" id="myOverlay"></div>
 
 <!-- !PAGE CONTENT! -->
-<div id="main" class="w3-main" style="margin-left:300px;margin-top:43px;">
+<div id="main" class="w3-main" style="margin-left:250px;margin-top:43px;">
 
     <!-- Header-->
     <header class="w3-container w3-grey" style="padding-top:55px">
@@ -582,7 +186,7 @@
                     <!--<div id="homeRegionMap" style="width:100%;height:400px;box-sizing: border-box"></div>-->
                     <script src="http://maps.google.com/maps/api/js?sensor=false"
                             type="text/javascript"></script>
-                    <div id="homemap" style="width:500px;height:400px"></div>
+                    <div id="homemap" style="width:100%;height:400px"></div>
 
                     <script type="text/javascript">
     var geolocations = [
@@ -824,7 +428,7 @@
         <div class="w3-panel">
             <div class="w3-row-padding" style="margin:0 -16px">
                 <div class="w3-twothird">
-                    <h5>Input Wizard</h5>
+                    <!--<h5>Input Wizard</h5>-->
 
                     <!-- Smart Wizard -->
                     <div id="wizard" class="swMain">
@@ -853,30 +457,28 @@
                                                 </fieldset>
                                             </form>
                                         </div>
-                                        -- Or --
-                                        <div data-bind="visible: ShowWsSource">Get Data From Database/Web Service
+                                        <br>
+                                        <div data-bind="visible: ShowWsSource">You may get data from web service or uploada your CSV file
 
                                         </div>
-                                        <i>Note:Based on below criteria, processor will search data into database. If
-                                            data is not
-                                            aviailable, then data will get retrieve via web service.</i>
-
+                                        <i> </i>
+                                        <br>
                                         <table class="w3-table w3-striped w3-white">
                                             <tr>
                                                 <td>Region</td>
                                                 <td>
-                                                    <select id="dropdowndatainputregion" name="region">
+                                                    <select id="dropdowndatainputregion" name="region" >
                                                     </select></td>
                                                 <td>Station</td>
-                                                <td><select id="dropdowndatainputstation" name="station"></select>
+                                                <td><select id="dropdowndatainputstation" name="station" ></select>
                                                     <input type="text" id="txtInputOtherStation" class="k-input hide">
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td>Start Date</td>
-                                                <td><input id="datepickerdatainputfrom" type="text"></input></td>
+                                                <td><input id="datepickerdatainputfrom" type="text" required></input></td>
                                                 <td>End Date</td>
-                                                <td><input id="datepickerdatainputto" type="text"></input></td>
+                                                <td><input id="datepickerdatainputto" type="text" required></input></td>
                                             </tr>
                                         </table>
 
@@ -888,8 +490,12 @@
 
 
                         </div>
-                        <div>
+                        <div >
                             <h2 class="StepTitle">Cleaning</h2>
+                            <p>
+                                Data cleaning removes uncorrect data which helps you in making right decisions.
+                            </p>
+                            <p>This tool removes duplicate and null values from the records.</p>
                             <p>Do you want to perform data cleaning operation?
                             </p>
                             <p>
@@ -900,19 +506,31 @@
                                        id="radperformcleaningNo"
                                        name="radperformcleaning"> No
                             </p>
-                            <p>
-                                Some description will come here...
-                            </p>
+
                         </div>
                         <div>
                             <h2 class="StepTitle">Apply Filter</h2>
                             <p>
+
                                 <input type="checkbox" data-bind="checked: Completeness" class="w3-check"> Completeness
+                                <span>( Completeness means no field value is missing )</span><br><br>
+
                                 <input type="checkbox" data-bind="checked: Correctness" class="w3-check"> Correctness
+                                <span>( Correctness represents the degree to which the field values in dataset are correct )</span><br><br>
+
                                 <input type="checkbox" data-bind="checked: Timeliness" class="w3-check"> Timeliness
+                                <span>( Timeliness means the degree to which the field values in a dataset are up to date )</span><br><br>
+
+
                                 <input type="checkbox" data-bind="checked: Uniqueness" class="w3-check"> Uniqueness
+                                <span>( Uniqueness means no duplicate records exist for a dataset )</span><br><br>
+
+
                                 <input type="checkbox" data-bind="checked: Validity" class="w3-check"> Validity
+                                <span>( Validity means fields present in a dataset are valid and confirm to the format, type, and range of its definition )</span><br><br>
+
                                 <input type="checkbox" data-bind="checked: Usability" class="w3-check"> Usability
+                                <span>( The degree to which data is useful. Usability is dependent on completeness, correctness and timeliness metrics )</span><br><br>
                             </p>
 
                         </div>
@@ -926,16 +544,18 @@
                                 <input type="radio"   class="w3-radio" value="StationBased" data-bind="checked:ModelBasedSubType"
                                        name="Station Based"> Station Based</td></tr>
                                 <tr>
-                                    <td>Is Monthly Validation?</td><td><input type="checkbox" class="w3-check" data-bind="checked:MonthlyValidation"></td>
+                                    <td>Perform Monthly Validation?</td><td><input type="checkbox" class="w3-check" data-bind="checked:MonthlyValidation"></td>
                                      </tr><tr>
-                                    <td>Enter Start Year</td><td><input type="text" class="k-input" data-bind="textInput:MonthStartDate"></td>
-                                     </tr><tr><td>Enter End Year</td><td><input type="text" class="k-input" data-bind="textInput:MonthEndDate"></td>
+                                    <td>Enter Start Year</td><td><input type="text" placeholder="YYYY" class="k-input" data-bind="textInput:MonthStartDate"></td>
+
+                                     </tr><tr><td>Enter End Year</td><td><input type="text" placeholder="YYYY" class="k-input" data-bind="textInput:MonthEndDate"></td>
                                 </tr>
 
                                 <tr>
-                                    <td>Is Yearly Validation?</td><td><input type="checkbox"  class="w3-check" data-bind="checked:YearlyValidation"></td>
-                                    </tr><tr> <td>Enter Start Year</td><td><input type="text" class="k-input" data-bind="textInput:StartYear"></td>
-                                    </tr><tr> <td>Enter End Year</td><td><input type="text" class="k-input" data-bind="textInput:EndYear"></td>
+                                    <td>Perform Yearly Validation?</td><td><input type="checkbox"  class="w3-check" data-bind="checked:YearlyValidation"></td>
+
+                                    </tr><tr> <td>Enter Start Year</td><td><input type="text" placeholder="YYYY" class="k-input" data-bind="textInput:StartYear"></td>
+                                    </tr><tr> <td>Enter End Year</td><td><input type="text" placeholder="YYYY" class="k-input" data-bind="textInput:EndYear"></td>
                                 </tr>
                             </table>
 
@@ -943,6 +563,7 @@
                     </div>
                     <!-- End SmartWizard Content -->
                 </div>
+
 
             </div>
         </div>
@@ -952,26 +573,12 @@
             <div class="w3-row-padding" style="margin:0 -16px">
                 <div class="w3-container  w3-padding-32">
                     <h5>Analysis and Report</h5>
-
-                     <div class=" w3-row">
-                        <div class="w3-container w3-third">
-                            <div id="spidermap" style="min-width: 400px; max-width: 600px; height: 400px; margin: 0 auto"></div>
-                        </div>
-
-                    </div>
-
-                    <div class=" w3-row">
-                        <div class="w3-container w3-third">
-                            <div id="monthlylinegraph" style="min-width: 400px; max-width: 600px; height: 400px; margin: 0 auto"></div>
-                        </div>
-
-                    </div>
-
-                    <div class=" w3-row">
-                        <div class="w3-container w3-third">
-                            <div id="yearlylinegraph" style="min-width: 400px; max-width: 600px; height: 400px; margin: 0 auto"></div>
-                        </div>
-
+                    <div id="chartcontainer" class="container">
+                        <!--div id="stationcontainer" class="w3-container">
+                            <div id="spidermap"  class="w3-third" ></div>
+                            <div id="monthlylinegraph" class="w3-third"></div>
+                            <div id="yearlylinegraph"  class="w3-third" ></div>
+                        </div-->
                     </div>
                 </div>
             </div> <!--Analysis Panel End-->
@@ -979,7 +586,7 @@
         </div><!-- !PAGE CONTENT END! -->
     </div>
 </div>
-<div id="mainmodal" class="w3-modal">
+<div id="mainmodal" style="z-index:2000000" class="w3-modal">
     <div class="w3-modal-content">
         <div class="w3-container">
       <span onclick="document.getElementById('mainmodal').style.display='none'"

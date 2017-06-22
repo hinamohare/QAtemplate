@@ -26,7 +26,8 @@ class MonthlyQPCalculation:
         total_null = 0
         # Iterate over keys pulled from first document to find all null values
         for key in self.doc:
-            total_null = total_null + self.coll.count({key: ""})
+            total_null = total_null + self.coll.find({'$or': [{key: {'$type': 10}}, {key:""}]}).count()
+            print total_null
             self.incomplete = total_null
         if temp_total_fields:
             completeness = ((temp_total_fields - total_null) * 100.0) / temp_total_fields
@@ -61,29 +62,33 @@ class MonthlyQPCalculation:
     def get_validity(self, temp_total_fields):
         invalid = 0
         for key in self.doc:
-            if key == "Temp":
-                invalid = invalid + self.coll.find({key: {'$ne': "", '$lt': -5, '$gt': 50}}).count()
+            if key == 'Temp':
+                invalid = invalid + self.coll.find({'$or': [{key: {'$lt': -5}}, {key: {'$gt': 50}}]}).count()
             if key == "SpCond":
-                invalid = invalid + self.coll.find({key: {'$ne': "", '$lt': 0, '$gt': 200}}).count()
+                invalid = invalid + self.coll.find({'$or': [{key: {'$lt': 0}}, {key: {'$gt': 40}}]}).count()
             if key == "Sal":
-                invalid = invalid + self.coll.find({key: {'$ne': "", '$lt': 0, '$gt': 70}}).count()
+                invalid = invalid + self.coll.find({'$or': [{key: {'$lt': 0}}, {key: {'$gt': 25}}]}).count()
             if key == "DO_pct":
-                invalid = invalid + self.coll.find({key: {'$ne': "", '$lt': 0, '$gt': 500}}).count()
+                invalid = invalid + self.coll.find({'$or': [{key: {'$lt': 0}}, {key: {'$gt': 500}}]}).count()
             if key == "DO_mgl":
-                invalid = invalid + self.coll.find({key: {'$ne': "", '$lt': 0, '$gt': 50}}).count()
+                invalid = invalid + self.coll.find({'$or': [{key: {'$lt': 0}}, {key: {'$gt': 50}}]}).count()
             if key == "Depth":
-                invalid = invalid + self.coll.find({key: {'$ne': "", '$lt': 0, '$gt': 33}}).count()
+                invalid = invalid + self.coll.find({'$or': [{key: {'$lt': 0}}, {key: {'$gt': 33}}]}).count()
             if key == "pH":
-                invalid = invalid + self.coll.find({key: {'$ne': "", '$lt': 0, '$gt': 14}}).count()
+                invalid = invalid + self.coll.find({'$or': [{key: {'$lt': 0}}, {key: {'$gt': 10}}]}).count()
             if key == "Turb":
-                invalid = invalid + self.coll.find({key: {'$ne': "", '$lt': 0, '$gt': 4000}}).count()
-            self.invalid = invalid
+                invalid = invalid + self.coll.find({'$or': [{key: {'$lt': 0}}, {key: {'$gt': 4000}}]}).count()
+            if key == "Level":
+                invalid = invalid + self.coll.find({'$or': [{key: {'$lt': 0}}, {key: {'$gt': 1}}]}).count()
+            if key == "ChlFluor":
+                invalid = invalid + self.coll.find({'$or': [{key: {'$lt': 0}}, {key: {'$gt': 11}}]}).count()
+        self.invalid = invalid
 
-            if temp_total_fields:
-                validity = (temp_total_fields - invalid) * 100.0 / temp_total_fields
-            else:
-                validity = 0.0
-            return validity
+        if temp_total_fields:
+            validity = (temp_total_fields - invalid) * 100.0 / temp_total_fields
+        else:
+            validity = 0.0
+        return validity
 
     def get_timeliness(self, days):
         distinct = self.coll.distinct("DateTimeStamp", {"DateTimeStamp": {"$ne": ""}})
@@ -99,7 +104,7 @@ class MonthlyQPCalculation:
             correctness = 0.0
         return correctness
 
-    def calculate_monthly_parameters(self, params, years, days):
+    def calculate_monthly_parameters(self, params, years):
         """
         Call this function to get quality parameters on a monthly basis
         :param years: List of years for which data quality parameters are to be calculated.
@@ -136,11 +141,11 @@ class MonthlyQPCalculation:
 
             month_mapping = {1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun", 7: "Jul", 8: "Aug", 9: "Sep",
                              10: "Oct", 11: "Nov", 12: "Dec"}
-            months = ["^01/", "^02/", "^03/", "^04/", "^05/", "^06/", "^07/", "^08/", "^09/", "^10/", "^11/", "^12/"]
+            months = ["^0?1[/-]", "^0?2[/-]", "^0?3[/-]", "^0?4[/-]", "^0?5[/-]", "^0?6[/-]", "^0?7[/-]", "^0?8[/-]", "^0?9[/-]", "^10[/-]", "^11[/-]", "^12[/-]"]
             # print params
             for year in years:
                 month = 0
-                pattern = "/" + str(year) + " "
+                pattern = "[/-]" + str(year) + " "
                 # print pattern
                 self.coll.aggregate([{"$match": {"DateTimeStamp": {"$regex": pattern}}}, {"$out": "temp_year_coll"}])
                 self.coll = self.db.temp_year_coll
@@ -160,7 +165,7 @@ class MonthlyQPCalculation:
                         #print ("calculating Completeness")
                         completeness = self.get_completeness(temp_total_fields)
                         #self.monthly_parameters["Completeness"][key] = "{0:.2f}".format(completeness)
-                        self.monthly_parameters["Completeness"].append("{0:.2f}".format(completeness))
+                        self.monthly_parameters["Completeness"].append(float("{0:.2f}".format(completeness)))
                     else:
                         completeness = 0
                         self.monthly_parameters["Completeness"] = []
@@ -169,7 +174,7 @@ class MonthlyQPCalculation:
                         #print ("calculating uniqueness")
                         uniqueness = self.get_uniqueness(temp_total_docs)
                         #self.monthly_parameters["Uniqueness"][key] = "{0:.2f}".format(uniqueness)
-                        self.monthly_parameters["Uniqueness"].append("{0:.2f}".format(uniqueness))
+                        self.monthly_parameters["Uniqueness"].append(float("{0:.2f}".format(uniqueness)))
                     else:
                         uniqueness = 0
                         self.monthly_parameters["Uniqueness"] = []
@@ -178,7 +183,7 @@ class MonthlyQPCalculation:
                         #print ("calculating validity")
                         validity = self.get_validity(temp_total_fields)
                         #self.monthly_parameters["Validity"][key] = "{0:.2f}".format(validity)
-                        self.monthly_parameters["Validity"].append("{0:.2f}".format(validity))
+                        self.monthly_parameters["Validity"].append(float("{0:.2f}".format(validity)))
                     else:
                         validity = 0
                         self.monthly_parameters["Validity"] = []
@@ -195,7 +200,7 @@ class MonthlyQPCalculation:
                             days = 28
                         timeliness = self.get_timeliness(days)
                         #self.monthly_parameters["Timeliness"][key] = "{0:.2f}".format(timeliness)
-                        self.monthly_parameters["Timeliness"].append("{0:.2f}".format(timeliness))
+                        self.monthly_parameters["Timeliness"].append(float("{0:.2f}".format(timeliness)))
                     else:
                         timeliness = 0
                         self.monthly_parameters["Timeliness"] = []
@@ -204,7 +209,7 @@ class MonthlyQPCalculation:
                         #print ("calculating correctness")
                         correctness = self.get_correctness(temp_total_fields)
                         #self.monthly_parameters["Correctness"][key] = "{0:.2f}".format(correctness)
-                        self.monthly_parameters["Correctness"].append("{0:.2f}".format(correctness))
+                        self.monthly_parameters["Correctness"].append(float("{0:.2f}".format(correctness)))
                     else:
                         correctness = 0
                         self.monthly_parameters["Correctness"] = []
@@ -213,7 +218,7 @@ class MonthlyQPCalculation:
                         #print ("calculating usability")
                         usability = completeness * correctness * timeliness / 10000.0
                         #self.monthly_parameters["Usability"][key] = "{0:.2f}".format(usability)
-                        self.monthly_parameters["Usability"].append("{0:.2f}".format(usability))
+                        self.monthly_parameters["Usability"].append(float("{0:.2f}".format(usability)))
                     else:
                         self.monthly_parameters["Usability"] = []
 
@@ -227,9 +232,8 @@ class MonthlyQPCalculation:
 
 # Instantiating the MonthlyQPCalculation() class for testing purpose
 # param = MonthlyQPCalculation()
-# years = [2016, 2017]
+# _years = [2012]
 # _params = {'Completeness': 'true', 'Correctness': 'true', 'Timeliness': 'true', 'Validity': 'true',
-#            'Uniqueness': 'true', 'Usability': 'true'}
-# _days = 366
-# p = param.calculate_monthly_parameters(_params, years, _days)
+#             'Uniqueness': 'true', 'Usability': 'true'}
+# p = param.calculate_monthly_parameters(_params, _years)
 # print p

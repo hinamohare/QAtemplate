@@ -121,18 +121,31 @@ qap = {
             }
         ,submitdatainput: function (inputdata,successCallback) {
             var jsonString = JSON.stringify(inputdata);
+            var selfQap = qap;
+            //$('#progress').show();
             $.ajax({
                 type: "POST",
                 url: "/getWaterQuality",
                 contentType: "application/json",
                 dataType: "json",
+                 beforeSend: function(){
+                         // Handle the beforeSend event
+                         selfQap.showmodal();
+                       },
                 success: function (msg) {
+
+                    //$('#progress').hide();
+
                     if (msg) {
                         //alert("Submitted");
-                            successCallback();
+                        console.log(msg.data.Result);
+                            successCallback(msg.data.Result,false);
                     } else {
                         alert("Cannot add to list !");
                     }
+                },
+                complete:function(){
+                selfQap.hidemodal();
                 },
 
                 data: jsonString
